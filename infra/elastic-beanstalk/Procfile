@@ -1,0 +1,1 @@
+web: pnpm --filter @workshop/api start:prod

@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #f5f7fa;
+  background: #010124;
+  font-family: 'Manrope', sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: #010124;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.panel {
+  @apply rounded-[28px] border border-aikido-800 bg-aikido-900 shadow-panel;
+}
+
+.pill {
+  @apply inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em];
+}
+
+.pill-muted {
+  @apply border-aikido-800 bg-aikido-950 text-mist;
+}
+
+.pill-primary {
+  @apply border-aikido-500/40 bg-aikido-500/15 text-aikido-100;
+}
+
+.pill-success {
+  @apply border-mint-500/40 bg-mint-500/15 text-mint-100;
+}
+
+.surface-subtle {
+  @apply rounded-3xl border border-aikido-800 bg-aikido-950;
+}

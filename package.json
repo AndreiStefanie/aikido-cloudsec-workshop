@@ -1,0 +1,19 @@
+{
+  "name": "aikido-cloudsec-workshop",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.6.3",
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "prettier": "^3.5.3"
+  },
+  "scripts": {
+    "dev:player": "pnpm --filter @workshop/player dev",
+    "dev:admin": "pnpm --filter @workshop/admin dev",
+    "dev:api": "pnpm --filter @workshop/api dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
+  }
+}

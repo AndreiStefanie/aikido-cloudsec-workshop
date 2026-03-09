@@ -1,0 +1,32 @@
+<template>
+  <div class="flex items-center gap-3">
+    <svg
+      width="22"
+      height="24"
+      viewBox="0 0 21 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      class="shrink-0"
+    >
+      <path d="M20.8653 0H0V7.53584H20.8653V0Z" fill="#6551F3" />
+      <path
+        d="M0 14.604C5.93593 9.11153 14.9293 9.11152 20.8653 14.604V23.9958L20.8612 24L10.4326 13.1805L0.00409069 24L0 23.9958V14.604Z"
+        fill="#6551F3"
+      />
+    </svg>
+    <div class="leading-tight">
+      <div class="font-display text-sm font-bold text-white">
+        Fix it · Snooze it · Ignore it
+      </div>
+      <a
+        href="https://www.aikido.dev/"
+        target="_blank"
+        rel="noreferrer"
+        class="text-[11px] text-mist/70 transition hover:text-mint-100"
+      >
+        Powered by Aikido Security
+      </a>
+    </div>
+  </div>
+</template>
