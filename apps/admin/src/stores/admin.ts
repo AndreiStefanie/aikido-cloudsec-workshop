@@ -11,6 +11,7 @@ import {
   fetchDashboard,
   revokeSession,
   updateChallenge,
+  updateScenario,
 } from '../api/admin';
 
 const authStorageKey = 'cloudsec-admin-basic-auth';
@@ -77,7 +78,11 @@ export const useAdminStore = defineStore('admin', {
         this.loading = false;
       }
     },
-    async saveScenario(challengeId: string, payload: UpsertScenarioInput) {
+    async saveScenario(
+      challengeId: string,
+      scenarioId: string | null,
+      payload: UpsertScenarioInput
+    ) {
       if (!this.credentials) {
         throw new Error('Missing credentials');
       }
@@ -85,7 +90,16 @@ export const useAdminStore = defineStore('admin', {
       this.loading = true;
       this.error = '';
       try {
-        await createScenario(this.credentials, challengeId, payload);
+        if (scenarioId) {
+          await updateScenario(
+            this.credentials,
+            challengeId,
+            scenarioId,
+            payload
+          );
+        } else {
+          await createScenario(this.credentials, challengeId, payload);
+        }
         await this.loadDashboard();
       } finally {
         this.loading = false;

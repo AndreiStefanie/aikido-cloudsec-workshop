@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
-import helmet from 'helmet';
 import type { NextFunction, Request, Response } from 'express';
+import helmet from 'helmet';
 import { ZodError } from 'zod';
 
 import { env } from './config/env.js';
@@ -31,7 +31,12 @@ app.use('/api/leaderboard', createLeaderboardRouter(repository));
 app.use('/api/admin', createAdminRouter(repository));
 
 app.use(
-  (error: unknown, _request: Request, response: Response, _next: NextFunction) => {
+  (
+    error: unknown,
+    _request: Request,
+    response: Response,
+    _next: NextFunction
+  ) => {
     if (error instanceof ZodError) {
       response.status(400).json({ message: 'Invalid request payload' });
       return;

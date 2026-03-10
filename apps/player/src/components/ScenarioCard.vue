@@ -44,7 +44,9 @@ const slaClass = computed(() =>
 const ownerRequired = computed(() => selectedAction.value !== 'ignore');
 
 const activeResource = ref<ResourceContext | null>(null);
-const activeResourceRows = computed(() => activeResource.value?.detailRows ?? []);
+const activeResourceRows = computed(
+  () => activeResource.value?.detailRows ?? []
+);
 const activeResourceTags = computed(() => activeResource.value?.tags ?? []);
 
 function hasResourceDetails(resource: ResourceContext) {
@@ -89,16 +91,29 @@ onBeforeUnmount(() => {
         {{ slaLabel }}
       </span>
     </div>
-    <p class="mt-3 max-w-3xl text-sm leading-6 text-mist">
-      {{ scenario.description }}
-    </p>
+    <div class="mt-6">
+      <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
+        Description
+      </div>
+      <p class="mt-3 max-w-4xl text-sm leading-6 text-mist">
+        {{ scenario.summary }}
+      </p>
+    </div>
+    <div class="mt-6">
+      <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
+        Remediation
+      </div>
+      <div class="surface-subtle mt-3 p-4">
+        <p class="text-sm leading-6 text-mist">
+          {{ scenario.remediation }}
+        </p>
+      </div>
+    </div>
     <div class="mt-6">
       <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
         Cloud assets involved
       </div>
-      <div
-        class="mt-3 overflow-x-auto rounded-3xl border border-aikido-800"
-      >
+      <div class="mt-3 overflow-x-auto rounded-3xl border border-aikido-800">
         <table
           class="w-full min-w-[720px] divide-y divide-aikido-800 text-left text-sm"
         >
@@ -112,10 +127,7 @@ onBeforeUnmount(() => {
             </tr>
           </thead>
           <tbody class="divide-y divide-aikido-800 bg-aikido-900">
-            <tr
-              v-for="resource in props.scenario.resources"
-              :key="resource.id"
-            >
+            <tr v-for="resource in props.scenario.resources" :key="resource.id">
               <td class="px-4 py-3 font-semibold text-white">
                 {{ resource.name }}
               </td>
@@ -216,7 +228,9 @@ onBeforeUnmount(() => {
           v-if="activeResourceTags.length"
           class="mt-6 rounded-3xl border border-aikido-800 bg-aikido-950 p-4"
         >
-          <div class="text-xs uppercase tracking-[0.2em] text-mist/60">Tags</div>
+          <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
+            Tags
+          </div>
           <div class="mt-3 flex flex-wrap gap-2">
             <span
               v-for="tag in activeResourceTags"
@@ -229,7 +243,9 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="mt-6 overflow-hidden rounded-3xl border border-aikido-800">
-          <table class="min-w-full divide-y divide-aikido-800 text-left text-sm">
+          <table
+            class="min-w-full divide-y divide-aikido-800 text-left text-sm"
+          >
             <tbody class="divide-y divide-aikido-800 bg-aikido-900">
               <tr v-for="row in activeResourceRows" :key="row.field">
                 <th class="w-1/3 px-4 py-3 font-semibold text-white">

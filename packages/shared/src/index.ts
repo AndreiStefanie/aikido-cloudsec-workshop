@@ -57,11 +57,9 @@ export interface ScenarioDefinition {
   order: number;
   title: string;
   summary: string;
-  findingType: string;
   severityLabel: 'low' | 'medium' | 'high' | 'critical';
-  exploitability: 'unlikely' | 'possible' | 'likely';
   sla: ScenarioSla;
-  description: string;
+  remediation: string;
   resources: ResourceContext[];
   securityLesson?: string;
   answer: ScenarioAnswer;
@@ -119,6 +117,23 @@ export interface ScenarioDecisionResult {
   challengeCompleted: boolean;
 }
 
+export interface CompletedScenarioReview {
+  scenarioId: string;
+  title: string;
+  summary: string;
+  submittedAction: ActionType;
+  submittedOwnerTeam?: TeamType;
+  correctAction: ActionType;
+  correctOwnerTeam: TeamType;
+  actionScoreDelta: number;
+  ownerScoreDelta: number;
+  streakBonusDelta: number;
+  totalDelta: number;
+  explanation: string;
+  impact: string;
+  securityLesson?: string;
+}
+
 export interface LeaderboardEntry {
   rank: number;
   participantName: string;
@@ -133,6 +148,7 @@ export interface PlayerBootstrap {
   session: ParticipantSession;
   currentScenario?: ScenarioDefinition;
   leaderboard: LeaderboardEntry[];
+  completedReview: CompletedScenarioReview[];
 }
 
 export interface JoinChallengeInput {
@@ -172,6 +188,7 @@ export interface AdminSessionSummary {
 export interface AdminDashboardResponse {
   challenges: AdminChallengeSummary[];
   sessions: AdminSessionSummary[];
+  challengeDefinitions: ChallengeDefinition[];
 }
 
 export interface UpsertChallengeInput {
@@ -187,12 +204,11 @@ export interface UpsertScenarioInput {
   order: number;
   title: string;
   summary: string;
-  findingType: string;
   severityLabel: ScenarioDefinition['severityLabel'];
-  exploitability: ScenarioDefinition['exploitability'];
   sla: ScenarioSla;
-  description: string;
+  remediation: string;
   resources: ResourceContext[];
+  securityLesson?: string;
   answer: ScenarioAnswer;
   alternatives: Partial<Record<ActionType, string>>;
 }

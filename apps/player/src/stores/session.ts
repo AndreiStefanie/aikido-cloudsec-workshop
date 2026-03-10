@@ -1,4 +1,5 @@
 import type {
+  CompletedScenarioReview,
   PlayerBootstrap,
   ScenarioDecisionInput,
   ScenarioDecisionResult,
@@ -136,9 +137,38 @@ export const useSessionStore = defineStore('session', {
           this.bootstrap.session.token,
           payload
         );
+        const currentScenario = this.bootstrap.currentScenario;
         this.feedback = result;
         this.bootstrap.session.score = result.totalScore;
         this.bootstrap.session.streak = result.resultingStreak;
+        if (currentScenario) {
+          const review: CompletedScenarioReview = {
+            scenarioId: result.scenarioId,
+            title: currentScenario.title,
+            summary: currentScenario.summary,
+            submittedAction: result.submittedAction,
+            submittedOwnerTeam: result.submittedOwnerTeam,
+            correctAction: result.correctAction,
+            correctOwnerTeam: result.correctOwnerTeam,
+            actionScoreDelta: result.actionScoreDelta,
+            ownerScoreDelta: result.ownerScoreDelta,
+            streakBonusDelta: result.streakBonusDelta,
+            totalDelta:
+              result.actionScoreDelta +
+              result.ownerScoreDelta +
+              result.streakBonusDelta,
+            explanation: result.explanation,
+            impact: result.impact,
+            securityLesson: result.securityLesson,
+          };
+
+          this.bootstrap.completedReview = [
+            ...this.bootstrap.completedReview.filter(
+              entry => entry.scenarioId !== review.scenarioId
+            ),
+            review,
+          ];
+        }
         this.pendingAdvance = {
           nextScenarioIndex: result.nextScenarioIndex,
           challengeCompleted: result.challengeCompleted,

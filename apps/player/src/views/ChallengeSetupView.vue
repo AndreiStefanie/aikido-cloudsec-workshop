@@ -38,15 +38,18 @@ async function startChallenge() {
 
       <div class="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <div class="text-xs font-semibold uppercase tracking-[0.18em] text-mist/70">
+          <div
+            class="text-xs font-semibold uppercase tracking-[0.18em] text-mist/70"
+          >
             Challenge
           </div>
           <h1 class="mt-2 font-display text-4xl text-white md:text-5xl">
             AWS: Identity and Data Exposure
           </h1>
           <p class="mt-4 max-w-2xl text-base leading-7 text-mist">
-            This challenge focuses on AWS-specific cloud security decision-making,
-            covering IAM hygiene and infrastructure vulnerability context.
+            This challenge focuses on AWS-specific cloud security
+            decision-making, covering IAM hygiene and infrastructure
+            vulnerability context.
           </p>
 
           <div class="mt-6 grid gap-4">
@@ -56,8 +59,9 @@ async function startChallenge() {
                 Legacy backup IAM user with unused credentials
               </div>
               <p class="mt-2 text-sm leading-6 text-mist">
-                Decide whether an unused IAM user with broad AWS access should be
-                fixed, snoozed, or ignored, and route it to the correct owner.
+                Decide whether an unused IAM user with broad AWS access should
+                be fixed, snoozed, or ignored, and route it to the correct
+                owner.
               </p>
             </div>
             <div class="surface-subtle p-5">
@@ -75,14 +79,17 @@ async function startChallenge() {
         </div>
 
         <div class="surface-subtle p-6">
-          <div class="text-xs font-semibold uppercase tracking-[0.18em] text-mist/70">
+          <div
+            class="text-xs font-semibold uppercase tracking-[0.18em] text-mist/70"
+          >
             Ready to start
           </div>
           <div class="mt-3 text-2xl font-display text-white">
             {{ sessionStore.joinDraft.participantName || 'Unnamed player' }}
           </div>
           <p class="mt-2 text-sm leading-6 text-mist">
-            Join code <span class="font-semibold text-white">{{
+            Join code
+            <span class="font-semibold text-white">{{
               sessionStore.joinDraft.joinCode || 'Not provided'
             }}</span
             >. Your answers are scored on prioritization, ownership, and streak

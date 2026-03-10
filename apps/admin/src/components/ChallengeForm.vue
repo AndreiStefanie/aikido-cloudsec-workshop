@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import type {
-  AdminChallengeSummary,
+  ChallengeDefinition,
   UpsertChallengeInput,
 } from '@workshop/shared';
 import { reactive, watch } from 'vue';
 
-const props = defineProps<{ modelValue?: AdminChallengeSummary | null }>();
-const emit = defineEmits<{ submit: [payload: UpsertChallengeInput] }>();
+const props = defineProps<{ modelValue?: ChallengeDefinition | null }>();
+const emit = defineEmits<{
+  submit: [payload: UpsertChallengeInput];
+  cancel: [];
+}>();
 
 const form = reactive<UpsertChallengeInput>({
   slug: '',
   name: '',
   description: '',
   joinCode: '',
-  joinPassword: '',
   isActive: true,
 });
 
@@ -22,9 +24,8 @@ watch(
   value => {
     form.slug = value?.slug ?? '';
     form.name = value?.name ?? '';
-    form.description = value ? `Workshop challenge for ${value.name}` : '';
+    form.description = value?.description ?? '';
     form.joinCode = value?.joinCode ?? '';
-    form.joinPassword = '';
     form.isActive = value?.isActive ?? true;
   },
   { immediate: true }
@@ -33,20 +34,29 @@ watch(
 
 <template>
   <form class="card p-6" @submit.prevent="emit('submit', { ...form })">
-    <div class="flex items-center justify-between">
+    <div class="flex items-start justify-between gap-4">
       <h2 class="font-display text-2xl text-slate-900">
         {{ props.modelValue ? 'Edit challenge' : 'New challenge' }}
       </h2>
-      <label
-        class="flex items-center gap-2 text-sm font-semibold text-slate-700"
-      >
-        <input
-          v-model="form.isActive"
-          type="checkbox"
-          class="rounded border-slate-300"
-        />
-        Active
-      </label>
+      <div class="flex items-center gap-4">
+        <label
+          class="flex items-center gap-2 text-sm font-semibold text-slate-700"
+        >
+          <input
+            v-model="form.isActive"
+            type="checkbox"
+            class="rounded border-slate-300"
+          />
+          Active
+        </label>
+        <button
+          type="button"
+          class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-aikido-500/30"
+          @click="emit('cancel')"
+        >
+          Close
+        </button>
+      </div>
     </div>
     <div class="mt-5 grid gap-4 md:grid-cols-2">
       <label class="block">
@@ -71,13 +81,6 @@ watch(
           v-model="form.joinCode"
           class="w-full rounded-2xl border-slate-200 px-4 py-3"
           required
-        />
-      </label>
-      <label class="block">
-        <span class="mb-2 block text-sm font-semibold">Password</span>
-        <input
-          v-model="form.joinPassword"
-          class="w-full rounded-2xl border-slate-200 px-4 py-3"
         />
       </label>
       <label class="block md:col-span-2">

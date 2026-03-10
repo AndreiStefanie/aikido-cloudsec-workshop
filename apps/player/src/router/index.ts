@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import ChallengeView from '../views/ChallengeView.vue';
 import ChallengeSetupView from '../views/ChallengeSetupView.vue';
+import ChallengeView from '../views/ChallengeView.vue';
 import HomeView from '../views/HomeView.vue';
 import LeaderboardView from '../views/LeaderboardView.vue';
 

@@ -1,6 +1,48 @@
 <script setup lang="ts">
 import type { ScenarioDecisionResult } from '@workshop/shared';
 
+function scoreDelta(result: ScenarioDecisionResult) {
+  return (
+    result.actionScoreDelta + result.ownerScoreDelta + result.streakBonusDelta
+  );
+}
+
+function scoreTone(totalDelta: number) {
+  if (totalDelta >= 15) {
+    return 'pill-success';
+  }
+
+  if (totalDelta >= 0) {
+    return 'border-[#FF9715]/30 bg-[#FF9715]/15 text-[#FF9715]';
+  }
+
+  return 'border-[#FF4A3E]/30 bg-[#FF4A3E]/15 text-[#FF4A3E]';
+}
+
+function scoreTextTone(totalDelta: number) {
+  if (totalDelta >= 15) {
+    return 'text-mint-100';
+  }
+
+  if (totalDelta >= 0) {
+    return 'text-[#FF9715]';
+  }
+
+  return 'text-[#FF4A3E]';
+}
+
+function componentTone(delta: number, positiveColor = 'text-mint-100') {
+  if (delta > 0) {
+    return positiveColor;
+  }
+
+  if (delta < 0) {
+    return 'text-[#FF4A3E]';
+  }
+
+  return 'text-mist/70';
+}
+
 defineProps<{
   result: ScenarioDecisionResult;
   continuing?: boolean;
@@ -30,7 +72,9 @@ defineEmits<{ continue: [] }>();
               : 'Owner differs'
         }}
       </span>
-      <span class="pill pill-primary">Score {{ result.totalScore }}</span>
+      <span class="pill" :class="scoreTone(scoreDelta(result))">
+        Score {{ scoreDelta(result) >= 0 ? '+' : '' }}{{ scoreDelta(result) }}
+      </span>
     </div>
 
     <div class="mt-5 grid gap-4 md:grid-cols-2">
@@ -49,11 +93,22 @@ defineEmits<{ continue: [] }>();
           Impact reasoning
         </div>
         <div class="mt-2">{{ result.impact }}</div>
-        <div class="mt-3 text-white">
-          +{{ result.actionScoreDelta }} action / +{{
-            result.ownerScoreDelta
-          }}
-          owner / +{{ result.streakBonusDelta }} streak
+        <div class="mt-3" :class="scoreTextTone(scoreDelta(result))">
+          <span :class="componentTone(result.actionScoreDelta)">
+            {{ result.actionScoreDelta >= 0 ? '+' : ''
+            }}{{ result.actionScoreDelta }} action
+          </span>
+          <span class="text-mist/50"> / </span>
+          <span :class="componentTone(result.ownerScoreDelta)">
+            {{ result.ownerScoreDelta >= 0 ? '+' : ''
+            }}{{ result.ownerScoreDelta }} owner
+          </span>
+          <span class="text-mist/50"> / </span>
+          <span :class="componentTone(result.streakBonusDelta)">
+            {{ result.streakBonusDelta >= 0 ? '+' : ''
+            }}{{ result.streakBonusDelta }} streak
+          </span>
+          <span v-if="result.streakBonusDelta >= 2" class="ml-1">🔥</span>
         </div>
       </div>
     </div>

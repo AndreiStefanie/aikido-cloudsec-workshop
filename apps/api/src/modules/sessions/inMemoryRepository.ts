@@ -2,6 +2,7 @@ import type {
   AdminChallengeSummary,
   AdminDashboardResponse,
   ChallengeDefinition,
+  CompletedScenarioReview,
   JoinChallengeInput,
   LeaderboardEntry,
   ParticipantSession,
@@ -51,7 +52,10 @@ export class InMemoryRepository implements Repository {
       participantName
     );
     if (existingSession) {
-      if (input.existingToken && existingSession.token === input.existingToken) {
+      if (
+        input.existingToken &&
+        existingSession.token === input.existingToken
+      ) {
         existingSession.updatedAt = new Date().toISOString();
         return this.toBootstrap(challenge, existingSession);
       }
@@ -248,7 +252,11 @@ export class InMemoryRepository implements Repository {
         updatedAt: session.updatedAt,
       }));
 
-    return { challenges, sessions };
+    const challengeDefinitions = Array.from(this.challenges.values())
+      .sort((left, right) => left.name.localeCompare(right.name))
+      .map(challenge => cloneChallenge(challenge));
+
+    return { challenges, sessions, challengeDefinitions };
   }
 
   async upsertChallenge(
@@ -341,6 +349,36 @@ export class InMemoryRepository implements Repository {
       session,
       currentScenario: challenge.scenarios[session.currentScenarioIndex],
       leaderboard: await this.getLeaderboard(challenge.slug),
+      completedReview: challenge.scenarios.flatMap<CompletedScenarioReview>(
+        scenario => {
+          const decision = (session as SessionRecord).decisions[scenario.id];
+          if (!decision) {
+            return [];
+          }
+
+          return [
+            {
+              scenarioId: scenario.id,
+              title: scenario.title,
+              summary: scenario.summary,
+              submittedAction: decision.submittedAction,
+              submittedOwnerTeam: decision.submittedOwnerTeam,
+              correctAction: decision.correctAction,
+              correctOwnerTeam: decision.correctOwnerTeam,
+              actionScoreDelta: decision.actionScoreDelta,
+              ownerScoreDelta: decision.ownerScoreDelta,
+              streakBonusDelta: decision.streakBonusDelta,
+              totalDelta:
+                decision.actionScoreDelta +
+                decision.ownerScoreDelta +
+                decision.streakBonusDelta,
+              explanation: decision.explanation,
+              impact: decision.impact,
+              securityLesson: decision.securityLesson,
+            },
+          ];
+        }
+      ),
     };
   }
 }
