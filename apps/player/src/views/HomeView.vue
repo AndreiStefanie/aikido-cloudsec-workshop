@@ -62,7 +62,9 @@ function dismissError() {
         </p>
 
         <div class="mt-6 surface-subtle p-5">
-          <div class="text-xs font-semibold uppercase tracking-[0.18em] text-mist/70">
+          <div
+            class="text-xs font-semibold uppercase tracking-[0.18em] text-mist/70"
+          >
             Current challenge
           </div>
           <div class="mt-2 font-display text-2xl text-white">

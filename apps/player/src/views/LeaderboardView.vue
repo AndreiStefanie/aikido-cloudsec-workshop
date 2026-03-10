@@ -21,10 +21,14 @@ async function loadLeaderboard() {
   loading.value = true;
   error.value = '';
   try {
-    entries.value = await fetchLeaderboard(route.params.challengeSlug as string);
+    entries.value = await fetchLeaderboard(
+      route.params.challengeSlug as string
+    );
   } catch (loadError) {
     error.value =
-      loadError instanceof Error ? loadError.message : 'Unable to load leaderboard';
+      loadError instanceof Error
+        ? loadError.message
+        : 'Unable to load leaderboard';
   } finally {
     loading.value = false;
   }
@@ -37,14 +41,18 @@ onMounted(loadLeaderboard);
 
 <template>
   <main class="mx-auto max-w-4xl px-4 py-8 md:px-8 md:py-10">
-    <header class="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <header
+      class="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
+    >
       <div>
         <WorkshopLockup />
         <h1 class="mt-4 font-display text-4xl text-white md:text-5xl">
           Leaderboard
         </h1>
         <p class="mt-2 text-lg text-white">{{ challengeName }}</p>
-        <p class="mt-2 text-mist">See how attendees stack up after finishing the challenge.</p>
+        <p class="mt-2 text-mist">
+          See how attendees stack up after finishing the challenge.
+        </p>
       </div>
       <button
         type="button"
@@ -76,7 +84,9 @@ onMounted(loadLeaderboard);
         </li>
       </ol>
 
-      <p v-if="entries.length === 0" class="text-mist">No completed runs yet.</p>
+      <p v-if="entries.length === 0" class="text-mist">
+        No completed runs yet.
+      </p>
     </div>
   </main>
 </template>

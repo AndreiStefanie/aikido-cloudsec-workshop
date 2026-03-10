@@ -41,11 +41,9 @@ export function createPlayerRouter(repository: Repository) {
       const bootstrap = await repository.joinChallenge(input);
       response.status(201).json(bootstrap);
     } catch (error) {
-      response
-        .status(400)
-        .json({
-          message: error instanceof Error ? error.message : 'Unable to join',
-        });
+      response.status(400).json({
+        message: error instanceof Error ? error.message : 'Unable to join',
+      });
     }
   });
 

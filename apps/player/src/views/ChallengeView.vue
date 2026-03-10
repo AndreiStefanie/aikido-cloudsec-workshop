@@ -18,6 +18,42 @@ const submittingTransition = ref(false);
 
 const streakLabel = computed(() => sessionStore.bootstrap?.session.streak ?? 0);
 
+function scoreTone(totalDelta: number) {
+  if (totalDelta >= 15) {
+    return 'pill-success';
+  }
+
+  if (totalDelta >= 0) {
+    return 'border-[#FF9715]/30 bg-[#FF9715]/15 text-[#FF9715]';
+  }
+
+  return 'border-[#FF4A3E]/30 bg-[#FF4A3E]/15 text-[#FF4A3E]';
+}
+
+function scoreTextTone(totalDelta: number) {
+  if (totalDelta >= 15) {
+    return 'text-mint-100';
+  }
+
+  if (totalDelta >= 0) {
+    return 'text-[#FF9715]';
+  }
+
+  return 'text-[#FF4A3E]';
+}
+
+function componentTone(delta: number, positiveColor = 'text-mint-100') {
+  if (delta > 0) {
+    return positiveColor;
+  }
+
+  if (delta < 0) {
+    return 'text-[#FF4A3E]';
+  }
+
+  return 'text-mist/70';
+}
+
 async function ensureSession() {
   const challengeSlug = route.params.challengeSlug as string;
   if (sessionStore.bootstrap?.challenge.slug === challengeSlug) {
@@ -157,7 +193,9 @@ onMounted(async () => {
             <span class="text-[10px] uppercase tracking-[0.18em] text-mist/60">
               Streak
             </span>
-            <span class="pill pill-success !px-2.5 !py-0.5"> {{ streakLabel }} </span>
+            <span class="pill pill-success !px-2.5 !py-0.5">
+              {{ streakLabel }}
+            </span>
           </div>
         </div>
       </div>
@@ -190,7 +228,9 @@ onMounted(async () => {
         class="fixed inset-0 z-50 flex items-center justify-center bg-[#010124]/70 px-4"
       >
         <div class="panel w-full max-w-md p-8 text-center">
-          <div class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-aikido-800 border-t-aikido-500"></div>
+          <div
+            class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-aikido-800 border-t-aikido-500"
+          ></div>
           <div class="mt-5 font-display text-2xl text-white">
             Evaluating your decision
           </div>
@@ -222,6 +262,55 @@ onMounted(async () => {
           You can reload later with the same device token, or start a new run
           with a different name.
         </p>
+        <div class="surface-subtle mt-8 p-6 text-left">
+          <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
+            Scenario review
+          </div>
+          <div class="mt-4 space-y-3">
+            <div
+              v-for="review in sessionStore.bootstrap.completedReview"
+              :key="review.scenarioId"
+              class="rounded-2xl border border-aikido-800 bg-aikido-900 px-4 py-4"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="font-semibold text-white">
+                    {{ review.title }}
+                  </div>
+                </div>
+                <div
+                  class="pill whitespace-nowrap"
+                  :class="scoreTone(review.totalDelta)"
+                >
+                  {{ review.totalDelta >= 0 ? '+' : '' }}{{ review.totalDelta }}
+                </div>
+              </div>
+              <div class="mt-4 text-xs uppercase tracking-[0.2em] text-mist/60">
+                Learning
+              </div>
+              <div class="mt-2 text-sm text-mist">
+                {{ review.securityLesson || review.explanation }}
+              </div>
+              <div class="mt-3 text-sm">
+                <span :class="componentTone(review.actionScoreDelta)">
+                  {{ review.actionScoreDelta >= 0 ? '+' : ''
+                  }}{{ review.actionScoreDelta }} action
+                </span>
+                <span class="text-mist/50"> / </span>
+                <span :class="componentTone(review.ownerScoreDelta)">
+                  {{ review.ownerScoreDelta >= 0 ? '+' : ''
+                  }}{{ review.ownerScoreDelta }} owner
+                </span>
+                <span class="text-mist/50"> / </span>
+                <span :class="componentTone(review.streakBonusDelta)">
+                  {{ review.streakBonusDelta >= 0 ? '+' : ''
+                  }}{{ review.streakBonusDelta }} streak
+                </span>
+                <span v-if="review.streakBonusDelta >= 2" class="ml-1">🔥</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
           <button
             type="button"

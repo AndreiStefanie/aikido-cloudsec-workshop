@@ -57,3 +57,19 @@ export function createScenario(
     }
   );
 }
+
+export function updateScenario(
+  credentials: string,
+  challengeId: string,
+  scenarioId: string,
+  payload: UpsertScenarioInput
+) {
+  return adminRequest<ScenarioDefinition>(
+    `/admin/challenges/${challengeId}/scenarios/${scenarioId}`,
+    credentials,
+    {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }
+  );
+}

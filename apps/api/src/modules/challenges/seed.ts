@@ -16,18 +16,16 @@ export const seedChallenges: ChallengeDefinition[] = [
       {
         id: 'scn-aws-unused-backup-user',
         order: 1,
-        title: 'Unused IAM Backup User',
+        title: 'Unused AWS Identity with Active Credentials',
         summary:
-          'A credential associated with an IAM user appears to be unused.',
-        findingType: 'Unused identity credential',
+          'An AWS identity still has active long-lived credentials, but available usage data suggests the access may not be serving a live purpose.',
         severityLabel: 'medium',
-        exploitability: 'possible',
         sla: {
           status: 'overdue',
           days: 160,
         },
-        description:
-          'Security tools often flag unused identities because forgotten credentials can be abused if they are exposed.',
+        remediation:
+          'Confirm whether the backup workflow still needs a standalone IAM user. If it does not, delete the access key and remove the user entirely. If the workflow is still required, replace the user with a narrower control such as a role-based integration, or at minimum rotate the credential and reduce the attached permissions. The remediation is operationally low risk because the key has never been used, but the access is broad enough that cleanup should not be deferred indefinitely.',
         resources: [
           {
             id: 'res-aws-1',
@@ -80,37 +78,35 @@ export const seedChallenges: ChallengeDefinition[] = [
           },
         ],
         securityLesson:
-          'Unused credentials should be removed. Forgotten IAM users with active access keys create unnecessary risk, and ownership can often be determined from resource tags.',
+          'Unused credentials should be removed, not merely monitored. Dormant IAM users with active keys create unnecessary risk, and simple context such as ownership tags is often enough to route the fix to the right team.',
         answer: {
           action: 'fix',
           ownerTeam: 'DevOps Team',
           rationale:
-            'The IAM user has an access key that has never been used but still grants permissions in the account. The correct action is to remove the access key or delete the IAM user if it is no longer needed. The owner tag points to the DevOps team.',
+            'The IAM user still has an active access key and broad permissions despite showing no evidence of legitimate use. That makes this a cleanup issue that should be fixed rather than deferred. The `owner:devops-team` tag provides the clearest ownership signal, so the DevOps Team should handle the remediation.',
           impact:
-            'Unused credentials increase the attack surface and are a common takeover vector if they are ever exposed.',
+            'Unused long-lived credentials increase the account attack surface and become high-value takeover material if they are ever exposed or rediscovered.',
         },
         alternatives: {
           snooze:
-            'Deferring cleanup leaves an unnecessary credential active in the environment.',
+            'Deferring cleanup keeps a broad, unnecessary credential alive without any clear operational reason to keep it.',
           ignore:
-            'Unused long-lived credentials should not be left unmanaged.',
+            'Ignoring the issue accepts a stale identity with account access as normal, which is exactly how forgotten credentials turn into avoidable incidents.',
         },
       },
       {
         id: 'scn-aws-vulnerable-bastion-host',
         order: 2,
-        title: 'Vulnerable Bastion Host',
+        title: 'Out-of-SLA Vulnerabilities on Shared Access Infrastructure',
         summary:
-          'An EC2 instance used as a bastion host has multiple unpatched vulnerabilities.',
-        findingType: 'Infrastructure vulnerability backlog',
+          'A production infrastructure asset used for administrative access has accumulated multiple overdue package vulnerabilities.',
         severityLabel: 'high',
-        exploitability: 'unlikely',
         sla: {
           status: 'overdue',
           days: 120,
         },
-        description:
-          'Security scanners report several outdated packages that are outside the remediation SLA.',
+        remediation:
+          'Schedule patching or replacement through the normal platform maintenance cycle. In practice, that likely means updating the instance image, rotating the bastion onto a current baseline, testing administrator access paths, and verifying that the security group remains limited to trusted internal entry points. This remediation has moderate operational risk because it touches shared access infrastructure used by multiple teams, so planning and coordination matter as much as the scanner severity.',
         resources: [
           {
             id: 'res-aws-4',
@@ -127,7 +123,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'Critical Vulnerabilities', value: '2' },
               { field: 'High Vulnerabilities', value: '23' },
               { field: 'Patch Age', value: '11 months' },
-              { field: 'Last Login', value: '3 days ago' },
             ],
             environment: 'production',
             ownerHints: ['Cloud Platform Team'],
@@ -173,20 +168,19 @@ export const seedChallenges: ChallengeDefinition[] = [
           },
         ],
         securityLesson:
-          'Vulnerability severity alone does not determine risk. Network exposure and system role must also be considered when prioritizing remediation.',
+          'Severity alone does not determine priority. Exposure, reachable attack paths, and the operational cost of remediation all matter when deciding whether to fix now or schedule the work.',
         answer: {
           action: 'snooze',
           ownerTeam: 'Cloud Platform Team',
           rationale:
-            'The bastion host should eventually be updated or replaced, but it is not exposed to the public internet and is reachable only through the corporate VPN. This lowers exploitability enough that it belongs in scheduled maintenance rather than urgent response.',
+            'The bastion host still needs remediation, but the access path is controlled tightly enough that this does not warrant immediate emergency treatment. The better call is to schedule the work through platform maintenance rather than treat it as the top live incident. Because the bastion is shared infrastructure owned by the platform layer, the Cloud Platform Team is the right owner.',
           impact:
-            'The host still carries real technical debt, but the current controls significantly reduce the chance of remote exploitation compared with an internet-facing system.',
+            'The host still carries meaningful technical debt, but the current network controls and system role reduce the urgency relative to a similarly vulnerable internet-facing asset.',
         },
         alternatives: {
-          fix:
-            'Immediate remediation is acceptable but not the best prioritization decision given the current exposure and access controls.',
+          fix: 'Immediate remediation would be defensible, but it over-prioritizes scanner severity over the actual exposure and operational context.',
           ignore:
-            'Ignoring the issue is incorrect because the vulnerability backlog still needs planned remediation by the infrastructure owner.',
+            'Ignoring the issue is incorrect because the backlog is real and the shared platform owner still needs to remediate it on a planned timeline.',
         },
       },
     ],

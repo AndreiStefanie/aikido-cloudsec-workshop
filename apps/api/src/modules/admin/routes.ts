@@ -2,8 +2,8 @@ import { actions, teams } from '@workshop/shared';
 import { Router } from 'express';
 import { z } from 'zod';
 
-import { requireAdminAuth } from '../auth/adminAuth.js';
 import { createRateLimit } from '../../lib/rateLimit.js';
+import { requireAdminAuth } from '../auth/adminAuth.js';
 import type { Repository } from '../sessions/types.js';
 
 const challengeSchema = z.object({
@@ -51,14 +51,12 @@ const scenarioSchema = z.object({
   order: z.number().int().nonnegative(),
   title: z.string().min(1),
   summary: z.string().min(1),
-  findingType: z.string().min(1),
   severityLabel: z.enum(['low', 'medium', 'high', 'critical']),
-  exploitability: z.enum(['unlikely', 'possible', 'likely']),
   sla: z.object({
     status: z.enum(['overdue', 'due_soon']),
     days: z.number().int().nonnegative(),
   }),
-  description: z.string().min(1),
+  remediation: z.string().min(1),
   resources: z.array(resourceSchema).min(1),
   securityLesson: z.string().optional(),
   answer: z.object({
@@ -109,12 +107,10 @@ export function createAdminRouter(repository: Repository) {
       );
       response.status(201).json(challenge);
     } catch (error) {
-      response
-        .status(400)
-        .json({
-          message:
-            error instanceof Error ? error.message : 'Unable to save challenge',
-        });
+      response.status(400).json({
+        message:
+          error instanceof Error ? error.message : 'Unable to save challenge',
+      });
     }
   });
 
@@ -126,14 +122,10 @@ export function createAdminRouter(repository: Repository) {
       );
       response.json(challenge);
     } catch (error) {
-      response
-        .status(400)
-        .json({
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Unable to update challenge',
-        });
+      response.status(400).json({
+        message:
+          error instanceof Error ? error.message : 'Unable to update challenge',
+      });
     }
   });
 
@@ -148,14 +140,10 @@ export function createAdminRouter(repository: Repository) {
         );
         response.status(201).json(scenario);
       } catch (error) {
-        response
-          .status(400)
-          .json({
-            message:
-              error instanceof Error
-                ? error.message
-                : 'Unable to save scenario',
-          });
+        response.status(400).json({
+          message:
+            error instanceof Error ? error.message : 'Unable to save scenario',
+        });
       }
     }
   );
@@ -171,14 +159,12 @@ export function createAdminRouter(repository: Repository) {
         );
         response.json(scenario);
       } catch (error) {
-        response
-          .status(400)
-          .json({
-            message:
-              error instanceof Error
-                ? error.message
-                : 'Unable to update scenario',
-          });
+        response.status(400).json({
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Unable to update scenario',
+        });
       }
     }
   );
