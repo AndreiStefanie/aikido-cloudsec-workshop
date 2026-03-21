@@ -137,7 +137,7 @@ onMounted(async () => {
 <template>
   <main
     v-if="sessionStore.bootstrap"
-    class="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-10"
+    class="mx-auto max-w-6xl px-4 py-6 md:px-8 md:py-10"
   >
     <header
       class="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
@@ -202,26 +202,29 @@ onMounted(async () => {
     </header>
 
     <div class="space-y-6">
-      <ScenarioCard
+      <div
         v-if="sessionStore.bootstrap.currentScenario && !sessionStore.feedback"
-        v-model:action="selectedAction"
-        v-model:owner="selectedOwner"
-        :scenario="sessionStore.bootstrap.currentScenario"
-        :submitting="sessionStore.loading"
-      />
-      <button
-        v-if="sessionStore.bootstrap.currentScenario && !sessionStore.feedback"
-        type="button"
-        class="w-full rounded-2xl bg-aikido-100 px-4 py-4 font-display text-lg text-aikido-950 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
-        :disabled="
-          !selectedAction ||
-          (selectedAction !== 'ignore' && !selectedOwner) ||
-          sessionStore.loading
-        "
-        @click="submit"
+        class="w-full space-y-6"
       >
-        {{ sessionStore.loading ? 'Submitting...' : 'Lock in decision' }}
-      </button>
+        <ScenarioCard
+          v-model:action="selectedAction"
+          v-model:owner="selectedOwner"
+          :scenario="sessionStore.bootstrap.currentScenario"
+          :submitting="sessionStore.loading"
+        />
+        <button
+          type="button"
+          class="w-full rounded-2xl bg-aikido-100 px-4 py-4 font-display text-lg text-aikido-950 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+          :disabled="
+            !selectedAction ||
+            (selectedAction !== 'ignore' && !selectedOwner) ||
+            sessionStore.loading
+          "
+          @click="submit"
+        >
+          {{ sessionStore.loading ? 'Submitting...' : 'Lock in decision' }}
+        </button>
+      </div>
 
       <div
         v-if="submittingTransition"

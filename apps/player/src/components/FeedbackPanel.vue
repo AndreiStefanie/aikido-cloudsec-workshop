@@ -52,7 +52,9 @@ defineEmits<{ continue: [] }>();
 </script>
 
 <template>
-  <section class="panel p-6 text-sm text-mist">
+  <section
+    class="panel max-h-[85vh] overflow-y-auto p-6 text-sm text-mist md:p-7"
+  >
     <div class="flex flex-wrap items-center gap-3">
       <span
         class="pill"
@@ -77,7 +79,7 @@ defineEmits<{ continue: [] }>();
       </span>
     </div>
 
-    <div class="mt-5 grid gap-4 md:grid-cols-2">
+    <div class="mt-6 space-y-4">
       <div class="surface-subtle p-4">
         <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
           Correct call
@@ -92,7 +94,7 @@ defineEmits<{ continue: [] }>();
         <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
           Impact reasoning
         </div>
-        <div class="mt-2">{{ result.impact }}</div>
+        <div class="mt-2 max-w-2xl">{{ result.impact }}</div>
         <div class="mt-3" :class="scoreTextTone(scoreDelta(result))">
           <span :class="componentTone(result.actionScoreDelta)">
             {{ result.actionScoreDelta >= 0 ? '+' : ''
@@ -117,7 +119,7 @@ defineEmits<{ continue: [] }>();
       <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
         Security lesson
       </div>
-      <div class="mt-2">{{ result.securityLesson }}</div>
+      <div class="mt-2 max-w-2xl">{{ result.securityLesson }}</div>
     </div>
 
     <button

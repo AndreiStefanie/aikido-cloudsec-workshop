@@ -5,6 +5,8 @@ import type {
 } from '@workshop/shared';
 import { reactive, watch } from 'vue';
 
+import DialogCloseButton from './DialogCloseButton.vue';
+
 const props = defineProps<{ modelValue?: ChallengeDefinition | null }>();
 const emit = defineEmits<{
   submit: [payload: UpsertChallengeInput];
@@ -49,13 +51,7 @@ watch(
           />
           Active
         </label>
-        <button
-          type="button"
-          class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-aikido-500/30"
-          @click="emit('cancel')"
-        >
-          Close
-        </button>
+        <DialogCloseButton @click="emit('cancel')" />
       </div>
     </div>
     <div class="mt-5 grid gap-4 md:grid-cols-2">

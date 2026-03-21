@@ -3,6 +3,8 @@ import { teams } from '@workshop/shared';
 import type { ScenarioDefinition, UpsertScenarioInput } from '@workshop/shared';
 import { reactive, watch } from 'vue';
 
+import DialogCloseButton from './DialogCloseButton.vue';
+
 const props = defineProps<{
   challengeId: string;
   modelValue?: ScenarioDefinition | null;
@@ -107,13 +109,7 @@ function submit() {
             props.modelValue ? props.modelValue.title : 'Create a new scenario'
           }}
         </div>
-        <button
-          type="button"
-          class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-mint-500/30"
-          @click="emit('cancel')"
-        >
-          Close
-        </button>
+        <DialogCloseButton tone="mint" @click="emit('cancel')" />
       </div>
     </div>
 

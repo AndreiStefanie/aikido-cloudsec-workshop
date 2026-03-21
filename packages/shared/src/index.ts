@@ -94,7 +94,7 @@ export interface ParticipantSession {
 
 export interface ScenarioDecisionInput {
   action: ActionType;
-  ownerTeam?: TeamType;
+  ownerTeam?: TeamType | null;
 }
 
 export interface ScenarioDecisionResult {

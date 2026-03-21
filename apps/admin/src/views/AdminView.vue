@@ -150,7 +150,6 @@ onBeforeUnmount(() => {
               >
                 CloudSec Workshop
               </div>
-              <div class="badge badge-primary">Hosted by Aikido Security</div>
             </div>
             <h1 class="mt-2 font-display text-4xl text-aikido-950">
               Admin dashboard

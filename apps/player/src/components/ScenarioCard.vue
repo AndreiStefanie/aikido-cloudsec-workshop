@@ -8,6 +8,8 @@ import {
 } from '@workshop/shared';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
+import DialogCloseButton from './DialogCloseButton.vue';
+
 const props = defineProps<{
   scenario: ScenarioDefinition;
   submitting?: boolean;
@@ -82,121 +84,130 @@ onBeforeUnmount(() => {
 
 <template>
   <section class="panel p-6 md:p-8">
-    <div class="flex flex-wrap items-center gap-3">
-      <h2 class="font-display text-3xl text-white">{{ scenario.title }}</h2>
-      <span class="pill" :class="severityClassMap[scenario.severityLabel]">
-        {{ scenario.severityLabel }}
-      </span>
-      <span class="pill" :class="slaClass">
-        {{ slaLabel }}
-      </span>
-    </div>
-    <div class="mt-6">
-      <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
-        Description
+    <div>
+      <div>
+        <h2 class="font-display text-3xl text-white">
+          {{ scenario.title }}
+        </h2>
       </div>
-      <p class="mt-3 max-w-4xl text-sm leading-6 text-mist">
-        {{ scenario.summary }}
-      </p>
-    </div>
-    <div class="mt-6">
-      <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
-        Remediation
+      <div class="mt-3 flex flex-wrap items-center gap-3">
+        <span class="pill" :class="severityClassMap[scenario.severityLabel]">
+          {{ scenario.severityLabel }}
+        </span>
+        <span class="pill" :class="slaClass">
+          {{ slaLabel }}
+        </span>
       </div>
-      <div class="surface-subtle mt-3 p-4">
-        <p class="text-sm leading-6 text-mist">
-          {{ scenario.remediation }}
+      <div class="mt-6">
+        <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
+          Description
+        </div>
+        <p class="mt-3 text-sm leading-6 text-mist">
+          {{ scenario.summary }}
         </p>
       </div>
-    </div>
-    <div class="mt-6">
-      <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
-        Cloud assets involved
+      <div class="mt-6">
+        <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
+          Remediation
+        </div>
+        <div class="surface-subtle mt-3 p-4">
+          <p class="text-sm leading-6 text-mist">
+            {{ scenario.remediation }}
+          </p>
+        </div>
       </div>
-      <div class="mt-3 overflow-x-auto rounded-3xl border border-aikido-800">
-        <table
-          class="w-full min-w-[720px] divide-y divide-aikido-800 text-left text-sm"
-        >
-          <thead class="bg-aikido-950 text-mist/70">
-            <tr>
-              <th class="px-4 py-3">Name</th>
-              <th class="px-4 py-3">Asset Type</th>
-              <th class="px-4 py-3">Created At</th>
-              <th class="px-4 py-3">Account</th>
-              <th class="px-4 py-3">Details</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-aikido-800 bg-aikido-900">
-            <tr v-for="resource in props.scenario.resources" :key="resource.id">
-              <td class="px-4 py-3 font-semibold text-white">
-                {{ resource.name }}
-              </td>
-              <td class="px-4 py-3 text-mist">
-                {{ resource.assetTypeLabel ?? resource.type }}
-              </td>
-              <td class="px-4 py-3 text-mist">
-                {{ resource.createdAt ?? '—' }}
-              </td>
-              <td class="px-4 py-3 text-mist">
-                {{ resource.account ?? resource.environment }}
-              </td>
-              <td class="px-4 py-3">
-                <button
-                  type="button"
-                  class="font-semibold text-aikido-100 underline underline-offset-4 disabled:no-underline disabled:opacity-40"
-                  :disabled="!hasResourceDetails(resource)"
-                  @click="openDetails(resource)"
-                >
-                  {{ resource.detailsLabel ?? 'View details' }}
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="mt-6">
+        <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
+          Cloud assets involved
+        </div>
+        <div class="mt-3 overflow-x-auto rounded-3xl border border-aikido-800">
+          <table
+            class="w-full min-w-[720px] divide-y divide-aikido-800 text-left text-sm"
+          >
+            <thead class="bg-aikido-950 text-mist/70">
+              <tr>
+                <th class="px-4 py-3">Name</th>
+                <th class="px-4 py-3">Asset Type</th>
+                <th class="px-4 py-3">Created At</th>
+                <th class="px-4 py-3">Account</th>
+                <th class="px-4 py-3">Details</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-aikido-800 bg-aikido-900">
+              <tr
+                v-for="resource in props.scenario.resources"
+                :key="resource.id"
+              >
+                <td class="px-4 py-3 font-semibold text-white">
+                  {{ resource.name }}
+                </td>
+                <td class="px-4 py-3 text-mist">
+                  {{ resource.assetTypeLabel ?? resource.type }}
+                </td>
+                <td class="px-4 py-3 text-mist">
+                  {{ resource.createdAt ?? '—' }}
+                </td>
+                <td class="px-4 py-3 text-mist">
+                  {{ resource.account ?? resource.environment }}
+                </td>
+                <td class="px-4 py-3">
+                  <button
+                    type="button"
+                    class="font-semibold text-aikido-100 underline underline-offset-4 disabled:no-underline disabled:opacity-40"
+                    :disabled="!hasResourceDetails(resource)"
+                    @click="openDetails(resource)"
+                  >
+                    {{ resource.detailsLabel ?? 'View details' }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
-    <div class="mt-8">
-      <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
-        Choose action
+      <div class="mt-8">
+        <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
+          Choose action
+        </div>
+        <div class="mt-3 grid gap-3">
+          <button
+            v-for="label in Object.keys(actionLabels) as ActionType[]"
+            :key="label"
+            type="button"
+            class="rounded-2xl border px-4 py-4 text-left transition"
+            :class="
+              selectedAction === label
+                ? 'border-aikido-500 bg-aikido-500/12 text-white ring-1 ring-aikido-500/30'
+                : 'border-aikido-800 bg-aikido-950 text-mist hover:border-aikido-500/40'
+            "
+            @click="selectedAction = label"
+          >
+            <div class="font-display text-lg">{{ actionLabels[label] }}</div>
+          </button>
+        </div>
       </div>
-      <div class="mt-3 grid gap-3">
-        <button
-          v-for="label in Object.keys(actionLabels) as ActionType[]"
-          :key="label"
-          type="button"
-          class="rounded-2xl border px-4 py-4 text-left transition"
-          :class="
-            selectedAction === label
-              ? 'border-aikido-500 bg-aikido-500/12 text-white ring-1 ring-aikido-500/30'
-              : 'border-aikido-800 bg-aikido-950 text-mist hover:border-aikido-500/40'
-          "
-          @click="selectedAction = label"
-        >
-          <div class="font-display text-lg">{{ actionLabels[label] }}</div>
-        </button>
-      </div>
-    </div>
 
-    <div v-if="ownerRequired" class="mt-8">
-      <label class="text-xs uppercase tracking-[0.2em] text-mist/60"
-        >Assign owner</label
-      >
-      <div class="mt-3 grid gap-3 sm:grid-cols-2">
-        <button
-          v-for="team in teams"
-          :key="team"
-          type="button"
-          class="rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition"
-          :class="
-            selectedOwner === team
-              ? 'border-mint-500 bg-mint-500/12 text-white ring-1 ring-mint-500/30'
-              : 'border-aikido-800 bg-aikido-950 text-mist hover:border-mint-500/35'
-          "
-          @click="selectedOwner = team"
+      <div v-if="ownerRequired" class="mt-8">
+        <label class="text-xs uppercase tracking-[0.2em] text-mist/60"
+          >Assign owner</label
         >
-          {{ team }}
-        </button>
+        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+          <button
+            v-for="team in teams"
+            :key="team"
+            type="button"
+            class="rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition"
+            :class="
+              selectedOwner === team
+                ? 'border-mint-500 bg-mint-500/12 text-white ring-1 ring-mint-500/30'
+                : 'border-aikido-800 bg-aikido-950 text-mist hover:border-mint-500/35'
+            "
+            @click="selectedOwner = team"
+          >
+            {{ team }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -215,13 +226,7 @@ onBeforeUnmount(() => {
               {{ activeResource.detailTitle ?? activeResource.name }}
             </h3>
           </div>
-          <button
-            type="button"
-            class="rounded-2xl border border-aikido-800 bg-aikido-950 px-4 py-2 text-sm font-semibold text-mist hover:border-aikido-500/30"
-            @click="closeDetails"
-          >
-            Close
-          </button>
+          <DialogCloseButton @click="closeDetails" />
         </div>
 
         <div

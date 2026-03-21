@@ -7,11 +7,8 @@ const form = reactive({ username: '', password: '' });
 
 <template>
   <section class="card mx-auto max-w-md p-8">
-    <div class="badge badge-primary">Hosted by Aikido Security</div>
-    <h1 class="mt-4 font-display text-3xl text-aikido-950">Workshop admin</h1>
-    <p class="mt-3 text-sm text-slate-700">
-      Credentials are kept only for the current tab session.
-    </p>
+    <div class="badge badge-primary">Aikido CloudSec Workshops</div>
+    <h1 class="mt-4 font-display text-3xl text-aikido-950">Admin Panel</h1>
     <form
       class="mt-6 space-y-4"
       @submit.prevent="emit('submit', form.username, form.password)"
@@ -35,7 +32,7 @@ const form = reactive({ username: '', password: '' });
         type="submit"
         class="w-full rounded-2xl bg-aikido-500 px-4 py-3 font-semibold text-white transition hover:bg-[#5641d9]"
       >
-        Open dashboard
+        Login
       </button>
     </form>
   </section>

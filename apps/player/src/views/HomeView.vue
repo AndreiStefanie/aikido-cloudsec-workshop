@@ -45,69 +45,60 @@ function dismissError() {
 
 <template>
   <main
-    class="mx-auto flex min-h-screen max-w-6xl flex-col justify-center gap-8 px-4 py-10 md:px-8"
+    class="mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-4 py-4 md:px-8 md:py-6"
   >
-    <section class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-      <div class="panel overflow-hidden p-8 md:p-10">
+    <section class="grid gap-4 lg:grid-cols-[0.95fr_0.9fr] lg:items-stretch">
+      <div class="panel overflow-hidden p-6 md:p-7">
         <WorkshopLockup />
         <h1
-          class="mt-6 max-w-2xl font-display text-5xl leading-none text-white md:text-7xl"
+          class="mt-4 max-w-lg font-display text-5xl leading-[0.95] text-white md:text-6xl"
         >
           Fix it, snooze it, ignore it
         </h1>
-        <p class="mt-6 max-w-2xl text-base leading-7 text-mist md:text-lg">
-          Prioritize real cloud findings under pressure. Decide what actually
-          matters, who owns it, and see how your calls stack up on the
-          leaderboard.
+        <p class="mt-4 max-w-lg text-base leading-7 text-mist md:text-lg">
+          Make the call on real cloud findings. Decide what matters, who owns
+          it, and how your decisions stack up.
         </p>
 
-        <div class="mt-6 surface-subtle p-5">
+        <div class="surface-subtle mt-5 p-4">
           <div
             class="text-xs font-semibold uppercase tracking-[0.18em] text-mist/70"
           >
             Current challenge
           </div>
-          <div class="mt-2 font-display text-2xl text-white">
+          <div class="mt-2 font-display text-xl text-white md:text-2xl">
             AWS: Identity and Data Exposure
           </div>
-          <p class="mt-2 max-w-2xl text-sm leading-6 text-mist">
-            Two AWS scenarios focused on IAM hygiene, vulnerability context, and
-            remediation ownership.
+          <p class="mt-2 max-w-lg text-sm leading-6 text-mist">
+            Two AWS scenarios focused on prioritization and ownership under
+            pressure.
           </p>
-        </div>
-
-        <div class="mt-8 grid gap-4 md:grid-cols-3">
-          <div class="surface-subtle p-4">
-            <div class="text-3xl font-extrabold text-aikido-100">2</div>
-            <div class="mt-2 text-sm text-mist">
-              scenarios currently loaded in the workshop
-            </div>
-          </div>
-          <div class="surface-subtle p-4">
-            <div class="text-3xl font-extrabold text-aikido-100">4</div>
-            <div class="mt-2 text-sm text-mist">
-              teams to route ownership correctly
-            </div>
-          </div>
-          <div class="surface-subtle p-4">
-            <div class="text-3xl font-extrabold text-aikido-100">AWS</div>
-            <div class="mt-2 text-sm text-mist">
-              current focus: IAM hygiene and infrastructure risk context
-            </div>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <span class="pill pill-muted normal-case tracking-normal"
+              >2 scenarios</span
+            >
+            <span class="pill pill-muted normal-case tracking-normal"
+              >4 teams</span
+            >
+            <span class="pill pill-muted normal-case tracking-normal">AWS</span>
           </div>
         </div>
       </div>
 
-      <div class="panel p-8 md:p-10">
+      <div class="panel p-6 md:p-7">
         <h2 class="font-display text-3xl text-white">Join the workshop</h2>
-        <form class="mt-6 space-y-4" @submit.prevent="submit">
+        <p class="mt-2 text-sm leading-6 text-mist">
+          Enter your workshop code and pick a unique name.
+        </p>
+
+        <form class="mt-4 space-y-3" @submit.prevent="submit">
           <label class="block">
             <span class="mb-2 block text-sm font-semibold text-mist"
               >Unique name</span
             >
             <input
               v-model="form.participantName"
-              class="w-full rounded-2xl border-aikido-800 bg-aikido-950 px-4 py-4 text-white"
+              class="w-full rounded-2xl border-aikido-800 bg-aikido-950 px-4 py-3 text-white"
               placeholder="Captain Context"
               required
             />
@@ -118,47 +109,49 @@ function dismissError() {
             >
             <input
               v-model="form.joinCode"
-              class="w-full rounded-2xl border-aikido-800 bg-aikido-950 px-4 py-4 uppercase text-white"
+              class="w-full rounded-2xl border-aikido-800 bg-aikido-950 px-4 py-3 uppercase text-white"
               placeholder="AWSLAB"
               required
             />
           </label>
           <button
             type="submit"
-            class="w-full rounded-2xl bg-aikido-500 px-4 py-4 font-display text-lg text-white transition hover:bg-[#5641d9] disabled:opacity-50"
+            class="w-full rounded-2xl bg-aikido-500 px-4 py-3 font-display text-lg text-white transition hover:bg-[#5641d9] disabled:opacity-50"
             :disabled="sessionStore.loading"
           >
             Continue
           </button>
 
-          <button
-            type="button"
-            class="w-full rounded-2xl border border-aikido-800 bg-aikido-950 px-4 py-4 font-semibold text-mist transition hover:border-aikido-500/30"
-            @click="resumeExisting"
-          >
-            Resume on this device
-          </button>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              class="w-full rounded-2xl border border-aikido-800 bg-aikido-950 px-4 py-3 font-semibold text-mist transition hover:border-aikido-500/30"
+              @click="resumeExisting"
+            >
+              Resume on this device
+            </button>
 
-          <button
-            type="button"
-            class="w-full rounded-2xl border border-aikido-800 bg-aikido-950 px-4 py-4 font-semibold text-mist transition hover:border-aikido-500/30"
-            @click="
-              router.push({
-                name: 'leaderboard',
-                params: { challengeSlug: 'aws-identity-and-data-exposure' },
-              })
-            "
-          >
-            Open leaderboard
-          </button>
+            <button
+              type="button"
+              class="w-full rounded-2xl border border-aikido-800 bg-aikido-950 px-4 py-3 font-semibold text-mist transition hover:border-aikido-500/30"
+              @click="
+                router.push({
+                  name: 'leaderboard',
+                  params: { challengeSlug: 'aws-identity-and-data-exposure' },
+                })
+              "
+            >
+              Open leaderboard
+            </button>
+          </div>
         </form>
 
-        <p class="mt-6 text-xs uppercase tracking-[0.18em] text-mist/70">
-          Join with your workshop code. No personal data required.
+        <p class="mt-4 text-xs uppercase tracking-[0.18em] text-mist/70">
+          No personal data required.
         </p>
         <div
           v-if="sessionStore.error"
-          class="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+          class="mt-3 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200"
         >
           <div>{{ sessionStore.error }}</div>
           <button
