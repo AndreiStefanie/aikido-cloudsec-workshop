@@ -23,18 +23,16 @@ const emit = defineEmits<{
 const form = reactive({
   order: 1,
   title: '',
-  summary: '',
+  description: '',
   severityLabel: 'medium' as UpsertScenarioInput['severityLabel'],
   slaStatus: 'overdue' as UpsertScenarioInput['sla']['status'],
   slaDays: 30,
   remediation: '',
   resourcesJson: '[]',
+  ignoreFeedbackOptionsText: '',
   answerAction: 'fix' as UpsertScenarioInput['answer']['action'],
   answerOwner: 'DevOps Team' as UpsertScenarioInput['answer']['ownerTeam'],
-  rationale: '',
-  impact: '',
   securityLesson: '',
-  alternativesJson: '{}',
 });
 
 const formError = reactive({ message: '' });
@@ -44,18 +42,18 @@ watch(
   value => {
     form.order = value?.order ?? 1;
     form.title = value?.title ?? '';
-    form.summary = value?.summary ?? '';
+    form.description = value?.description ?? '';
     form.severityLabel = value?.severityLabel ?? 'medium';
     form.slaStatus = value?.sla.status ?? 'overdue';
     form.slaDays = value?.sla.days ?? 30;
     form.remediation = value?.remediation ?? '';
     form.resourcesJson = JSON.stringify(value?.resources ?? [], null, 2);
+    form.ignoreFeedbackOptionsText = (value?.ignoreFeedbackOptions ?? []).join(
+      '\n'
+    );
     form.answerAction = value?.answer.action ?? 'fix';
     form.answerOwner = value?.answer.ownerTeam ?? 'DevOps Team';
-    form.rationale = value?.answer.rationale ?? '';
-    form.impact = value?.answer.impact ?? '';
     form.securityLesson = value?.securityLesson ?? '';
-    form.alternativesJson = JSON.stringify(value?.alternatives ?? {}, null, 2);
     formError.message = '';
   },
   { immediate: true }
@@ -64,7 +62,15 @@ watch(
 function submit() {
   try {
     const resources = JSON.parse(form.resourcesJson);
-    const alternatives = JSON.parse(form.alternativesJson);
+    const ignoreFeedbackOptions = form.ignoreFeedbackOptionsText
+      .split('\n')
+      .map(option => option.trim())
+      .filter(Boolean);
+
+    if (ignoreFeedbackOptions.length !== 3) {
+      formError.message = 'Provide exactly 3 ignore feedback options.';
+      return;
+    }
 
     emit('submit', {
       challengeId: props.challengeId,
@@ -72,7 +78,7 @@ function submit() {
       payload: {
         order: Number(form.order),
         title: form.title,
-        summary: form.summary,
+        description: form.description,
         severityLabel: form.severityLabel,
         sla: {
           status: form.slaStatus,
@@ -80,19 +86,17 @@ function submit() {
         },
         remediation: form.remediation,
         resources,
-        securityLesson: form.securityLesson || undefined,
+        ignoreFeedbackOptions,
+        securityLesson: form.securityLesson,
         answer: {
           action: form.answerAction,
           ownerTeam: form.answerOwner,
-          rationale: form.rationale,
-          impact: form.impact,
         },
-        alternatives,
       },
     });
     formError.message = '';
   } catch {
-    formError.message = 'Resources and alternatives must be valid JSON.';
+    formError.message = 'Resources must be valid JSON.';
   }
 }
 </script>
@@ -133,9 +137,9 @@ function submit() {
         />
       </label>
       <label class="block md:col-span-2">
-        <span class="mb-2 block text-sm font-semibold">Summary</span>
+        <span class="mb-2 block text-sm font-semibold">Description</span>
         <input
-          v-model="form.summary"
+          v-model="form.description"
           class="w-full rounded-2xl border-slate-200 px-4 py-3"
           required
         />
@@ -190,6 +194,18 @@ function submit() {
           required
         />
       </label>
+      <label class="block md:col-span-2">
+        <span class="mb-2 block text-sm font-semibold">
+          Ignore feedback options
+        </span>
+        <textarea
+          v-model="form.ignoreFeedbackOptionsText"
+          rows="4"
+          class="w-full rounded-2xl border-slate-200 px-4 py-3"
+          placeholder="One option per line"
+          required
+        />
+      </label>
       <label class="block">
         <span class="mb-2 block text-sm font-semibold">Correct action</span>
         <select
@@ -213,37 +229,11 @@ function submit() {
         </select>
       </label>
       <label class="block md:col-span-2">
-        <span class="mb-2 block text-sm font-semibold">Rationale</span>
-        <textarea
-          v-model="form.rationale"
-          rows="3"
-          class="w-full rounded-2xl border-slate-200 px-4 py-3"
-          required
-        />
-      </label>
-      <label class="block md:col-span-2">
-        <span class="mb-2 block text-sm font-semibold">Impact</span>
-        <textarea
-          v-model="form.impact"
-          rows="3"
-          class="w-full rounded-2xl border-slate-200 px-4 py-3"
-          required
-        />
-      </label>
-      <label class="block md:col-span-2">
         <span class="mb-2 block text-sm font-semibold">Security lesson</span>
         <textarea
           v-model="form.securityLesson"
           rows="3"
           class="w-full rounded-2xl border-slate-200 px-4 py-3"
-        />
-      </label>
-      <label class="block md:col-span-2">
-        <span class="mb-2 block text-sm font-semibold">Alternatives JSON</span>
-        <textarea
-          v-model="form.alternativesJson"
-          rows="6"
-          class="w-full rounded-2xl border-slate-200 px-4 py-3 font-mono text-sm"
           required
         />
       </label>

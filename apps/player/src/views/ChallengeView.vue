@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ActionType, TeamType } from '@workshop/shared';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { ApiError } from '../api/client';
@@ -14,12 +14,18 @@ const router = useRouter();
 const sessionStore = useSessionStore();
 const selectedAction = ref<ActionType | null>(null);
 const selectedOwner = ref<TeamType | null>(null);
+const selectedIgnoreFeedback = ref<string | null>(null);
 const submittingTransition = ref(false);
 
 const streakLabel = computed(() => sessionStore.bootstrap?.session.streak ?? 0);
+const leaderboardHref = computed(() =>
+  sessionStore.bootstrap
+    ? `/leaderboard/${sessionStore.bootstrap.challenge.slug}`
+    : '#'
+);
 
-function scoreTone(totalDelta: number) {
-  if (totalDelta >= 15) {
+function scoreTone(actionScoreDelta: number, totalDelta: number) {
+  if (actionScoreDelta > 0) {
     return 'pill-success';
   }
 
@@ -69,17 +75,6 @@ async function ensureSession() {
   await sessionStore.resume(challengeSlug, persisted.token);
 }
 
-function openLeaderboard() {
-  if (!sessionStore.bootstrap) {
-    return;
-  }
-
-  router.push({
-    name: 'leaderboard',
-    params: { challengeSlug: sessionStore.bootstrap.challenge.slug },
-  });
-}
-
 async function continueAfterFeedback() {
   try {
     await sessionStore.continueAfterFeedback();
@@ -93,7 +88,8 @@ async function continueAfterFeedback() {
 async function submit() {
   if (
     !selectedAction.value ||
-    (selectedAction.value !== 'ignore' && !selectedOwner.value)
+    (selectedAction.value !== 'ignore' && !selectedOwner.value) ||
+    (selectedAction.value === 'ignore' && !selectedIgnoreFeedback.value)
   ) {
     return;
   }
@@ -105,11 +101,16 @@ async function submit() {
         action: selectedAction.value,
         ownerTeam:
           selectedAction.value === 'ignore' ? undefined : selectedOwner.value,
+        ignoreFeedback:
+          selectedAction.value === 'ignore'
+            ? selectedIgnoreFeedback.value
+            : undefined,
       }),
-      new Promise(resolve => window.setTimeout(resolve, 1200)),
+      new Promise(resolve => window.setTimeout(resolve, 250)),
     ]);
     selectedAction.value = null;
     selectedOwner.value = null;
+    selectedIgnoreFeedback.value = null;
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       router.replace({ name: 'home' });
@@ -132,6 +133,15 @@ onMounted(async () => {
     router.replace({ name: 'home' });
   }
 });
+
+watch(selectedAction, action => {
+  if (action === 'ignore') {
+    selectedOwner.value = null;
+    return;
+  }
+
+  selectedIgnoreFeedback.value = null;
+});
 </script>
 
 <template>
@@ -145,13 +155,12 @@ onMounted(async () => {
       <div>
         <div class="flex flex-wrap items-center gap-3">
           <WorkshopLockup />
-          <button
-            type="button"
+          <a
             class="pill pill-muted transition hover:border-aikido-500/40"
-            @click="openLeaderboard"
+            :href="leaderboardHref"
           >
             View leaderboard
-          </button>
+          </a>
         </div>
         <h1 class="mt-4 font-display text-4xl text-white md:text-5xl">
           {{ sessionStore.bootstrap.challenge.name }}
@@ -209,6 +218,7 @@ onMounted(async () => {
         <ScenarioCard
           v-model:action="selectedAction"
           v-model:owner="selectedOwner"
+          v-model:ignore-feedback="selectedIgnoreFeedback"
           :scenario="sessionStore.bootstrap.currentScenario"
           :submitting="sessionStore.loading"
         />
@@ -218,6 +228,7 @@ onMounted(async () => {
           :disabled="
             !selectedAction ||
             (selectedAction !== 'ignore' && !selectedOwner) ||
+            (selectedAction === 'ignore' && !selectedIgnoreFeedback) ||
             sessionStore.loading
           "
           @click="submit"
@@ -283,7 +294,7 @@ onMounted(async () => {
                 </div>
                 <div
                   class="pill whitespace-nowrap"
-                  :class="scoreTone(review.totalDelta)"
+                  :class="scoreTone(review.actionScoreDelta, review.totalDelta)"
                 >
                   {{ review.totalDelta >= 0 ? '+' : '' }}{{ review.totalDelta }}
                 </div>
@@ -292,7 +303,7 @@ onMounted(async () => {
                 Learning
               </div>
               <div class="mt-2 text-sm text-mist">
-                {{ review.securityLesson || review.explanation }}
+                {{ review.securityLesson }}
               </div>
               <div class="mt-3 text-sm">
                 <span :class="componentTone(review.actionScoreDelta)">
@@ -315,13 +326,12 @@ onMounted(async () => {
           </div>
         </div>
         <div class="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-          <button
-            type="button"
+          <a
             class="rounded-2xl bg-aikido-500 px-5 py-3 font-semibold text-white hover:bg-[#5641d9]"
-            @click="openLeaderboard"
+            :href="leaderboardHref"
           >
             Open leaderboard
-          </button>
+          </a>
           <button
             type="button"
             class="rounded-2xl border border-aikido-800 bg-aikido-950 px-5 py-3 font-semibold text-mist hover:border-aikido-500/30"

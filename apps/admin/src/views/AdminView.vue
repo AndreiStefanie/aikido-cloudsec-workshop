@@ -283,7 +283,7 @@ onBeforeUnmount(() => {
                     {{ scenario.order }}. {{ scenario.title }}
                   </div>
                   <div class="mt-1 text-sm text-slate-600">
-                    {{ scenario.summary }}
+                    {{ scenario.description }}
                   </div>
                 </div>
                 <div

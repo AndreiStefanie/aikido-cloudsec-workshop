@@ -20,6 +20,7 @@ const resumeSchema = z.object({
 const decisionSchema = z.object({
   action: z.enum(actions),
   ownerTeam: z.enum(teams).optional(),
+  ignoreFeedback: z.string().min(1).optional(),
 });
 
 export function createPlayerRouter(repository: Repository) {
@@ -81,21 +82,28 @@ export function createPlayerRouter(repository: Repository) {
   });
 
   router.post('/decision', async (request, response) => {
-    const token = getBearerToken(request);
-    if (!token) {
-      response.status(401).json({ message: 'Missing token' });
-      return;
+    try {
+      const token = getBearerToken(request);
+      if (!token) {
+        response.status(401).json({ message: 'Missing token' });
+        return;
+      }
+
+      const input = decisionSchema.parse(request.body);
+      const result = await repository.submitDecision(token, input);
+
+      if (!result) {
+        response.status(404).json({ message: 'Scenario not found' });
+        return;
+      }
+
+      response.json(result);
+    } catch (error) {
+      response.status(400).json({
+        message:
+          error instanceof Error ? error.message : 'Unable to submit decision',
+      });
     }
-
-    const input = decisionSchema.parse(request.body);
-    const result = await repository.submitDecision(token, input);
-
-    if (!result) {
-      response.status(404).json({ message: 'Scenario not found' });
-      return;
-    }
-
-    response.json(result);
   });
 
   router.get('/current-scenario', async (request, response) => {

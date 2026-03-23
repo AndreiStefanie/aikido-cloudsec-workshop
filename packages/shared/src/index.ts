@@ -27,7 +27,6 @@ export interface ResourceContext {
   tags?: string[];
   account?: string;
   detailsLabel?: string;
-  detailTitle?: string;
   detailRows?: ScenarioDetailRow[];
   environment: string;
   ownerHints: string[];
@@ -43,8 +42,6 @@ export interface ScenarioDetailRow {
 export interface ScenarioAnswer {
   action: ActionType;
   ownerTeam: TeamType;
-  rationale: string;
-  impact: string;
 }
 
 export interface ScenarioSla {
@@ -56,14 +53,14 @@ export interface ScenarioDefinition {
   id: string;
   order: number;
   title: string;
-  summary: string;
+  description: string;
   severityLabel: 'low' | 'medium' | 'high' | 'critical';
   sla: ScenarioSla;
   remediation: string;
   resources: ResourceContext[];
-  securityLesson?: string;
+  securityLesson: string;
+  ignoreFeedbackOptions: string[];
   answer: ScenarioAnswer;
-  alternatives: Partial<Record<ActionType, string>>;
 }
 
 export interface ChallengeDefinition {
@@ -95,12 +92,14 @@ export interface ParticipantSession {
 export interface ScenarioDecisionInput {
   action: ActionType;
   ownerTeam?: TeamType | null;
+  ignoreFeedback?: string;
 }
 
 export interface ScenarioDecisionResult {
   scenarioId: string;
   submittedAction: ActionType;
   submittedOwnerTeam?: TeamType;
+  submittedIgnoreFeedback?: string;
   correctAction: ActionType;
   correctOwnerTeam: TeamType;
   actionScoreDelta: number;
@@ -110,9 +109,7 @@ export interface ScenarioDecisionResult {
   totalScore: number;
   isActionCorrect: boolean;
   isOwnerCorrect: boolean;
-  explanation: string;
-  impact: string;
-  securityLesson?: string;
+  securityLesson: string;
   nextScenarioIndex: number;
   challengeCompleted: boolean;
 }
@@ -120,18 +117,16 @@ export interface ScenarioDecisionResult {
 export interface CompletedScenarioReview {
   scenarioId: string;
   title: string;
-  summary: string;
   submittedAction: ActionType;
   submittedOwnerTeam?: TeamType;
+  submittedIgnoreFeedback?: string;
   correctAction: ActionType;
   correctOwnerTeam: TeamType;
   actionScoreDelta: number;
   ownerScoreDelta: number;
   streakBonusDelta: number;
   totalDelta: number;
-  explanation: string;
-  impact: string;
-  securityLesson?: string;
+  securityLesson: string;
 }
 
 export interface LeaderboardEntry {
@@ -203,12 +198,12 @@ export interface UpsertChallengeInput {
 export interface UpsertScenarioInput {
   order: number;
   title: string;
-  summary: string;
+  description: string;
   severityLabel: ScenarioDefinition['severityLabel'];
   sla: ScenarioSla;
   remediation: string;
   resources: ResourceContext[];
-  securityLesson?: string;
+  securityLesson: string;
+  ignoreFeedbackOptions: string[];
   answer: ScenarioAnswer;
-  alternatives: Partial<Record<ActionType, string>>;
 }

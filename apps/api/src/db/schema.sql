@@ -17,13 +17,13 @@ CREATE TABLE
     challenge_id UUID NOT NULL REFERENCES challenges (id) ON DELETE CASCADE,
     sort_order INTEGER NOT NULL,
     title TEXT NOT NULL,
-    summary TEXT NOT NULL,
+    description TEXT NOT NULL,
     severity_label TEXT NOT NULL,
     remediation TEXT NOT NULL,
     resources JSONB NOT NULL,
-    security_lesson TEXT,
+    security_lesson TEXT NOT NULL,
+    ignore_feedback_options JSONB NOT NULL DEFAULT '[]'::jsonb,
     answer JSONB NOT NULL,
-    alternatives JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );

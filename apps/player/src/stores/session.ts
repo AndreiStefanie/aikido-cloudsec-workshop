@@ -145,9 +145,9 @@ export const useSessionStore = defineStore('session', {
           const review: CompletedScenarioReview = {
             scenarioId: result.scenarioId,
             title: currentScenario.title,
-            summary: currentScenario.summary,
             submittedAction: result.submittedAction,
             submittedOwnerTeam: result.submittedOwnerTeam,
+            submittedIgnoreFeedback: result.submittedIgnoreFeedback,
             correctAction: result.correctAction,
             correctOwnerTeam: result.correctOwnerTeam,
             actionScoreDelta: result.actionScoreDelta,
@@ -157,8 +157,6 @@ export const useSessionStore = defineStore('session', {
               result.actionScoreDelta +
               result.ownerScoreDelta +
               result.streakBonusDelta,
-            explanation: result.explanation,
-            impact: result.impact,
             securityLesson: result.securityLesson,
           };
 

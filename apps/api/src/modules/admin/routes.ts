@@ -32,7 +32,6 @@ const resourceSchema = z.object({
   tags: z.array(z.string()).optional(),
   account: z.string().optional(),
   detailsLabel: z.string().optional(),
-  detailTitle: z.string().optional(),
   detailRows: z
     .array(
       z.object({
@@ -50,7 +49,7 @@ const resourceSchema = z.object({
 const scenarioSchema = z.object({
   order: z.number().int().nonnegative(),
   title: z.string().min(1),
-  summary: z.string().min(1),
+  description: z.string().min(1),
   severityLabel: z.enum(['low', 'medium', 'high', 'critical']),
   sla: z.object({
     status: z.enum(['overdue', 'due_soon']),
@@ -58,20 +57,12 @@ const scenarioSchema = z.object({
   }),
   remediation: z.string().min(1),
   resources: z.array(resourceSchema).min(1),
-  securityLesson: z.string().optional(),
+  securityLesson: z.string().min(1),
+  ignoreFeedbackOptions: z.array(z.string().min(1)).length(3),
   answer: z.object({
     action: z.enum(actions),
     ownerTeam: z.enum(teams),
-    rationale: z.string().min(1),
-    impact: z.string().min(1),
   }),
-  alternatives: z
-    .object({
-      fix: z.string().optional(),
-      snooze: z.string().optional(),
-      ignore: z.string().optional(),
-    })
-    .default({}),
 });
 
 export function createAdminRouter(repository: Repository) {

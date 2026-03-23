@@ -16,16 +16,21 @@ export const seedChallenges: ChallengeDefinition[] = [
       {
         id: 'scn-aws-unused-backup-user',
         order: 1,
-        title: 'Unused AWS Identity with Active Credentials',
-        summary:
-          'An AWS identity still has active long-lived credentials, but available usage data suggests the access may not be serving a live purpose.',
+        title: 'Ensure credentials unused for 45 days or more are disabled',
+        description:
+          'AWS IAM users can access AWS resources using different types of credentials, such as passwords or access keys. It is recommended that all credentials that have been unused for 45 days or more be deactivated or removed.',
         severityLabel: 'medium',
         sla: {
           status: 'overdue',
           days: 160,
         },
         remediation:
-          'Confirm whether the backup workflow still needs a standalone IAM user. If it does not, delete the access key and remove the user entirely. If the workflow is still required, replace the user with a narrower control such as a role-based integration, or at minimum rotate the credential and reduce the attached permissions. The remediation is operationally low risk because the key has never been used, but the access is broad enough that cleanup should not be deferred indefinitely.',
+          'After confirming that the IAM user is not needed, disable console access and deactivate or delete the access key(s).',
+        ignoreFeedbackOptions: [
+          'Automatically ignore unused IAM credential findings when access keys have never been used.',
+          'Automatically ignore IAM credential hygiene findings in development accounts.',
+          'Automatically ignore IAM findings when the resource has an explicit owner tag.',
+        ],
         resources: [
           {
             id: 'res-aws-1',
@@ -36,7 +41,6 @@ export const seedChallenges: ChallengeDefinition[] = [
             tags: ['owner:devops-team'],
             account: 'AWS development account',
             detailsLabel: 'View details',
-            detailTitle: 'Asset Details (backup-user)',
             detailRows: [
               { field: 'Access Key Age', value: '340 days' },
               { field: 'Last Used', value: 'Never' },
@@ -82,31 +86,26 @@ export const seedChallenges: ChallengeDefinition[] = [
         answer: {
           action: 'fix',
           ownerTeam: 'DevOps Team',
-          rationale:
-            'The IAM user still has an active access key and broad permissions despite showing no evidence of legitimate use. That makes this a cleanup issue that should be fixed rather than deferred. The `owner:devops-team` tag provides the clearest ownership signal, so the DevOps Team should handle the remediation.',
-          impact:
-            'Unused long-lived credentials increase the account attack surface and become high-value takeover material if they are ever exposed or rediscovered.',
-        },
-        alternatives: {
-          snooze:
-            'Deferring cleanup keeps a broad, unnecessary credential alive without any clear operational reason to keep it.',
-          ignore:
-            'Ignoring the issue accepts a stale identity with account access as normal, which is exactly how forgotten credentials turn into avoidable incidents.',
         },
       },
       {
         id: 'scn-aws-vulnerable-bastion-host',
         order: 2,
-        title: 'Out-of-SLA Vulnerabilities on Shared Access Infrastructure',
-        summary:
-          'A production infrastructure asset used for administrative access has accumulated multiple overdue package vulnerabilities.',
+        title: 'EC2 Instance with Multiple Package Vulnerabilities (CVEs)',
+        description:
+          'The vulnerability assessment solution on your virtual machine reported multiple package vulnerabilities, including 2 critical and 23 high severity CVEs.',
         severityLabel: 'high',
         sla: {
-          status: 'overdue',
-          days: 120,
+          status: 'due_soon',
+          days: 21,
         },
         remediation:
-          'Schedule patching or replacement through the normal platform maintenance cycle. In practice, that likely means updating the instance image, rotating the bastion onto a current baseline, testing administrator access paths, and verifying that the security group remains limited to trusted internal entry points. This remediation has moderate operational risk because it touches shared access infrastructure used by multiple teams, so planning and coordination matter as much as the scanner severity.',
+          'Update or remove vulnerable packages on the virtual machine.',
+        ignoreFeedbackOptions: [
+          'Automatically ignore vulnerability findings on bastion hosts that are reachable only through the corporate VPN.',
+          'Automatically ignore package vulnerabilities on shared access infrastructure when no public IP is attached.',
+          'Automatically ignore out-of-SLA VM vulnerabilities whenever network exposure is limited to private CIDR ranges.',
+        ],
         resources: [
           {
             id: 'res-aws-4',
@@ -117,7 +116,6 @@ export const seedChallenges: ChallengeDefinition[] = [
             tags: ['owner:platform-team', 'role:bastion'],
             account: 'AWS production account',
             detailsLabel: 'View details',
-            detailTitle: 'Asset Details (bastion-prod)',
             detailRows: [
               { field: 'Instance Role', value: 'Bastion Host' },
               { field: 'Critical Vulnerabilities', value: '2' },
@@ -138,14 +136,9 @@ export const seedChallenges: ChallengeDefinition[] = [
             tags: ['owner:platform-team'],
             account: 'AWS production account',
             detailsLabel: 'View details',
-            detailTitle: 'Asset Details (bastion-sg)',
             detailRows: [
-              { field: 'Inbound SSH', value: 'Corporate VPN only' },
-              { field: 'Internet Exposure', value: 'No' },
-              {
-                field: 'Purpose',
-                value: 'Admin access to internal infrastructure',
-              },
+              { field: 'Inbound TCP 22', value: '50.236.77.120/32' },
+              { field: 'Inbound TCP 3389', value: '50.236.77.120/32' },
             ],
             environment: 'production',
             ownerHints: ['Cloud Platform Team'],
@@ -172,15 +165,72 @@ export const seedChallenges: ChallengeDefinition[] = [
         answer: {
           action: 'snooze',
           ownerTeam: 'Cloud Platform Team',
-          rationale:
-            'The bastion host still needs remediation, but the access path is controlled tightly enough that this does not warrant immediate emergency treatment. The better call is to schedule the work through platform maintenance rather than treat it as the top live incident. Because the bastion is shared infrastructure owned by the platform layer, the Cloud Platform Team is the right owner.',
-          impact:
-            'The host still carries meaningful technical debt, but the current network controls and system role reduce the urgency relative to a similarly vulnerable internet-facing asset.',
         },
-        alternatives: {
-          fix: 'Immediate remediation would be defensible, but it over-prioritizes scanner severity over the actual exposure and operational context.',
-          ignore:
-            'Ignoring the issue is incorrect because the backlog is real and the shared platform owner still needs to remediate it on a planned timeline.',
+      },
+      {
+        id: 'scn-aws-internal-vm-openssh-cves',
+        order: 3,
+        title: 'OpenSSH Package Vulnerabilities on Internal Compute Asset',
+        description:
+          'The vulnerability assessment solution on your virtual machine reported OpenSSH package vulnerabilities. The affected host is not internet reachable based on the currently attached network controls.',
+        severityLabel: 'medium',
+        sla: {
+          status: 'due_soon',
+          days: 14,
+        },
+        remediation:
+          'If this finding class is expected to remain non-exploitable when no public attack path exists, update the detection logic to automatically suppress or ignore matching cases. If exposure changes later, the issue should become actionable again.',
+        ignoreFeedbackOptions: [
+          'Automatically ignore vulnerabilities when the affected service is reachable only from private CIDR ranges and the host has no public IP.',
+          'Automatically ignore all vulnerabilities on private instances, regardless of which service is affected.',
+          'Automatically ignore OpenSSH findings whenever the instance is tagged as internal.',
+        ],
+        resources: [
+          {
+            id: 'res-aws-7',
+            name: 'ops-runner-01',
+            type: 'VirtualMachine',
+            assetTypeLabel: 'AWS::EC2::Instance',
+            createdAt: '2024-01-09',
+            tags: ['owner:platform-team', 'role:ops-runner'],
+            account: 'AWS production account',
+            detailsLabel: 'View details',
+            detailRows: [
+              { field: 'Installed Package', value: 'openssh-server' },
+              { field: 'Critical Vulnerabilities', value: '0' },
+              { field: 'High Vulnerabilities', value: '2' },
+              { field: 'Public IP', value: 'None' },
+            ],
+            environment: 'production',
+            ownerHints: ['Cloud Platform Team'],
+            exposure: 'internal',
+            notes: 'Private operations runner in a restricted subnet',
+          },
+          {
+            id: 'res-aws-8',
+            name: 'ops-runner-sg',
+            type: 'Identity',
+            assetTypeLabel: 'AWS::EC2::SecurityGroup',
+            createdAt: '2024-01-09',
+            tags: ['owner:platform-team'],
+            account: 'AWS production account',
+            detailsLabel: 'View details',
+            detailRows: [
+              { field: 'Inbound TCP 22', value: '10.40.0.0/16' },
+              { field: 'Inbound TCP 443', value: 'None' },
+              { field: 'Inbound TCP 3389', value: 'None' },
+            ],
+            environment: 'production',
+            ownerHints: ['Cloud Platform Team'],
+            exposure: 'internal',
+            notes: 'Allows access only from internal network ranges',
+          },
+        ],
+        securityLesson:
+          'Some findings should be ignored when the required attack path does not exist. In those cases, the better long-term fix is often improving the tool so non-actionable issues are suppressed automatically.',
+        answer: {
+          action: 'ignore',
+          ownerTeam: 'Security Team',
         },
       },
     ],

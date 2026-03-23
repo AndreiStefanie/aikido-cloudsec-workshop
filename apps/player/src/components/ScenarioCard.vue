@@ -17,6 +17,7 @@ const props = defineProps<{
 
 const selectedAction = defineModel<ActionType | null>('action');
 const selectedOwner = defineModel<TeamType | null>('owner');
+const selectedIgnoreFeedback = defineModel<string | null>('ignoreFeedback');
 
 const actionLabels: Record<ActionType, string> = {
   fix: 'Fix it',
@@ -43,13 +44,27 @@ const slaClass = computed(() =>
     : 'border-[#FF9715]/30 bg-[#FF9715]/15 text-[#FF9715]'
 );
 
-const ownerRequired = computed(() => selectedAction.value !== 'ignore');
+const ownerRequired = computed(
+  () => selectedAction.value === 'fix' || selectedAction.value === 'snooze'
+);
 
 const activeResource = ref<ResourceContext | null>(null);
 const activeResourceRows = computed(
   () => activeResource.value?.detailRows ?? []
 );
 const activeResourceTags = computed(() => activeResource.value?.tags ?? []);
+const detailRowsWithTags = computed(() => {
+  const rows = [...activeResourceRows.value];
+
+  if (activeResourceTags.value.length) {
+    rows.unshift({
+      field: 'Tags',
+      value: activeResourceTags.value.join(', '),
+    });
+  }
+
+  return rows;
+});
 
 function hasResourceDetails(resource: ResourceContext) {
   return Boolean(resource.detailRows?.length || resource.tags?.length);
@@ -103,18 +118,16 @@ onBeforeUnmount(() => {
           Description
         </div>
         <p class="mt-3 text-sm leading-6 text-mist">
-          {{ scenario.summary }}
+          {{ scenario.description }}
         </p>
       </div>
       <div class="mt-6">
         <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
           Remediation
         </div>
-        <div class="surface-subtle mt-3 p-4">
-          <p class="text-sm leading-6 text-mist">
-            {{ scenario.remediation }}
-          </p>
-        </div>
+        <p class="mt-3 text-sm leading-6 text-mist">
+          {{ scenario.remediation }}
+        </p>
       </div>
       <div class="mt-6">
         <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
@@ -209,6 +222,48 @@ onBeforeUnmount(() => {
           </button>
         </div>
       </div>
+
+      <div v-else class="mt-8">
+        <div class="flex items-center gap-2">
+          <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
+            Vendor feedback
+          </div>
+          <div class="group relative">
+            <button
+              type="button"
+              class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-aikido-800 text-[11px] font-semibold text-mist/70 transition hover:border-aikido-500/30 hover:text-white focus:border-aikido-500/30 focus:text-white"
+              aria-label="Explain vendor feedback"
+            >
+              i
+            </button>
+            <div
+              class="pointer-events-none absolute left-0 top-7 z-10 w-72 rounded-2xl border border-aikido-800 bg-aikido-950 px-3 py-2 text-left text-xs normal-case tracking-normal text-mist opacity-0 shadow-panel transition group-hover:opacity-100 group-focus-within:opacity-100"
+            >
+              This is your feedback to the vendor describing the
+              capability/feature that would have reduced the noise and/or helped
+              you to understand the issue quicker.
+            </div>
+          </div>
+        </div>
+        <div class="mt-3 grid gap-3">
+          <button
+            v-for="option in scenario.ignoreFeedbackOptions"
+            :key="option"
+            type="button"
+            class="rounded-2xl border px-4 py-4 text-left transition"
+            :class="
+              selectedIgnoreFeedback === option
+                ? 'border-mint-500 bg-mint-500/12 text-white ring-1 ring-mint-500/30'
+                : 'border-aikido-800 bg-aikido-950 text-mist hover:border-mint-500/35'
+            "
+            @click="selectedIgnoreFeedback = option"
+          >
+            <div class="font-semibold text-white">
+              {{ option }}
+            </div>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div
@@ -223,28 +278,10 @@ onBeforeUnmount(() => {
               Asset details
             </div>
             <h3 class="mt-2 font-display text-3xl text-white">
-              {{ activeResource.detailTitle ?? activeResource.name }}
+              {{ activeResource.name }}
             </h3>
           </div>
           <DialogCloseButton @click="closeDetails" />
-        </div>
-
-        <div
-          v-if="activeResourceTags.length"
-          class="mt-6 rounded-3xl border border-aikido-800 bg-aikido-950 p-4"
-        >
-          <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
-            Tags
-          </div>
-          <div class="mt-3 flex flex-wrap gap-2">
-            <span
-              v-for="tag in activeResourceTags"
-              :key="tag"
-              class="pill pill-muted"
-            >
-              {{ tag }}
-            </span>
-          </div>
         </div>
 
         <div class="mt-6 overflow-hidden rounded-3xl border border-aikido-800">
@@ -252,7 +289,7 @@ onBeforeUnmount(() => {
             class="min-w-full divide-y divide-aikido-800 text-left text-sm"
           >
             <tbody class="divide-y divide-aikido-800 bg-aikido-900">
-              <tr v-for="row in activeResourceRows" :key="row.field">
+              <tr v-for="row in detailRowsWithTags" :key="row.field">
                 <th class="w-1/3 px-4 py-3 font-semibold text-white">
                   {{ row.field }}
                 </th>

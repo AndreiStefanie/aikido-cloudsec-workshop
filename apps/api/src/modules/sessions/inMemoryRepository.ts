@@ -139,6 +139,16 @@ export class InMemoryRepository implements Repository {
       return null;
     }
 
+    if (input.action === 'ignore') {
+      if (!input.ignoreFeedback) {
+        throw new Error('Ignore feedback is required');
+      }
+
+      if (!scenario.ignoreFeedbackOptions.includes(input.ignoreFeedback)) {
+        throw new Error('Ignore feedback option is invalid');
+      }
+    }
+
     const breakdown = scoreDecision(scenario, input, session.streak);
     const nextScenarioIndex = session.currentScenarioIndex + 1;
     const challengeCompleted = nextScenarioIndex >= challenge.scenarios.length;
@@ -161,6 +171,7 @@ export class InMemoryRepository implements Repository {
       scenarioId: scenario.id,
       submittedAction: input.action,
       submittedOwnerTeam: input.ownerTeam,
+      submittedIgnoreFeedback: input.ignoreFeedback,
       correctAction: scenario.answer.action,
       correctOwnerTeam: scenario.answer.ownerTeam,
       actionScoreDelta: breakdown.actionScoreDelta,
@@ -172,8 +183,6 @@ export class InMemoryRepository implements Repository {
       isOwnerCorrect:
         input.action !== 'ignore' &&
         input.ownerTeam === scenario.answer.ownerTeam,
-      explanation: scenario.answer.rationale,
-      impact: scenario.answer.impact,
       securityLesson: scenario.securityLesson,
       nextScenarioIndex,
       challengeCompleted,
@@ -360,9 +369,9 @@ export class InMemoryRepository implements Repository {
             {
               scenarioId: scenario.id,
               title: scenario.title,
-              summary: scenario.summary,
               submittedAction: decision.submittedAction,
               submittedOwnerTeam: decision.submittedOwnerTeam,
+              submittedIgnoreFeedback: decision.submittedIgnoreFeedback,
               correctAction: decision.correctAction,
               correctOwnerTeam: decision.correctOwnerTeam,
               actionScoreDelta: decision.actionScoreDelta,
@@ -372,8 +381,6 @@ export class InMemoryRepository implements Repository {
                 decision.actionScoreDelta +
                 decision.ownerScoreDelta +
                 decision.streakBonusDelta,
-              explanation: decision.explanation,
-              impact: decision.impact,
               securityLesson: decision.securityLesson,
             },
           ];

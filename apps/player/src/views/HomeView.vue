@@ -70,12 +70,12 @@ function dismissError() {
             AWS: Identity and Data Exposure
           </div>
           <p class="mt-2 max-w-lg text-sm leading-6 text-mist">
-            Two AWS scenarios focused on prioritization and ownership under
+            Three AWS scenarios focused on prioritization and ownership under
             pressure.
           </p>
           <div class="mt-3 flex flex-wrap gap-2">
             <span class="pill pill-muted normal-case tracking-normal"
-              >2 scenarios</span
+              >3 scenarios</span
             >
             <span class="pill pill-muted normal-case tracking-normal"
               >4 teams</span
@@ -131,18 +131,12 @@ function dismissError() {
               Resume on this device
             </button>
 
-            <button
-              type="button"
+            <a
               class="w-full rounded-2xl border border-aikido-800 bg-aikido-950 px-4 py-3 font-semibold text-mist transition hover:border-aikido-500/30"
-              @click="
-                router.push({
-                  name: 'leaderboard',
-                  params: { challengeSlug: 'aws-identity-and-data-exposure' },
-                })
-              "
+              href="/leaderboard/aws-identity-and-data-exposure"
             >
               Open leaderboard
-            </button>
+            </a>
           </div>
         </form>
 
