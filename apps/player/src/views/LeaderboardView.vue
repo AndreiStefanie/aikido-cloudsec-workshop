@@ -13,7 +13,7 @@ const loading = ref(false);
 const error = ref('');
 const challengeName = computed(() =>
   route.params.challengeSlug === 'aws-identity-and-data-exposure'
-    ? 'AWS: Identity and Data Exposure'
+    ? 'Cloud Village @RSAC 2026'
     : String(route.params.challengeSlug)
 );
 

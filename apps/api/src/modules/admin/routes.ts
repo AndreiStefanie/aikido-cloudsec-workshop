@@ -11,7 +11,6 @@ const challengeSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
   joinCode: z.string().min(1),
-  joinPassword: z.string().optional(),
   isActive: z.boolean(),
 });
 
@@ -46,24 +45,53 @@ const resourceSchema = z.object({
   notes: z.string().optional(),
 });
 
-const scenarioSchema = z.object({
-  order: z.number().int().nonnegative(),
-  title: z.string().min(1),
-  description: z.string().min(1),
-  severityLabel: z.enum(['low', 'medium', 'high', 'critical']),
-  sla: z.object({
-    status: z.enum(['overdue', 'due_soon']),
-    days: z.number().int().nonnegative(),
-  }),
-  remediation: z.string().min(1),
-  resources: z.array(resourceSchema).min(1),
-  securityLesson: z.string().min(1),
-  ignoreFeedbackOptions: z.array(z.string().min(1)).length(3),
-  answer: z.object({
-    action: z.enum(actions),
-    ownerTeam: z.enum(teams),
-  }),
-});
+const scenarioSchema = z
+  .object({
+    order: z.number().int().nonnegative(),
+    title: z.string().min(1),
+    description: z.string().min(1),
+    severityLabel: z.enum(['low', 'medium', 'high', 'critical']),
+    sla: z.object({
+      status: z.enum(['overdue', 'due_soon']),
+      days: z.number().int().nonnegative(),
+    }),
+    remediation: z.string().min(1),
+    diagram: z
+      .object({
+        src: z.string().min(1),
+        alt: z.string().min(1),
+        title: z.string().min(1).optional(),
+      })
+      .optional(),
+    resources: z.array(resourceSchema).min(1),
+    securityLesson: z.string().min(1),
+    ignoreFeedbackOptions: z.array(z.string().min(1)).length(3),
+    answer: z.object({
+      action: z.enum(actions),
+      ownerTeam: z.enum(teams).optional(),
+      ignoreFeedback: z.string().min(1).optional(),
+    }),
+  })
+  .superRefine((scenario, ctx) => {
+    if (scenario.answer.action === 'ignore') {
+      if (!scenario.answer.ignoreFeedback) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Ignore scenarios require correct vendor feedback.',
+          path: ['answer', 'ignoreFeedback'],
+        });
+      }
+      return;
+    }
+
+    if (!scenario.answer.ownerTeam) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Fix and snooze scenarios require a correct owner.',
+        path: ['answer', 'ownerTeam'],
+      });
+    }
+  });
 
 export function createAdminRouter(repository: Repository) {
   const router = Router();

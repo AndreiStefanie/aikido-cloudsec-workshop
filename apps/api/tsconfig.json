@@ -1,6 +1,11 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@workshop/shared": ["../../packages/shared/dist/index.d.ts"]
+    },
+    "rootDir": "src",
     "outDir": "dist",
     "types": ["node"]
   },

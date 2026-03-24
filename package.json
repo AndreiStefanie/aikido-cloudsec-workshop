@@ -3,6 +3,14 @@
   "private": true,
   "version": "0.1.0",
   "packageManager": "pnpm@10.6.3",
+  "engines": {
+    "node": "22.x",
+    "npm": ">=10"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "prettier": "^3.5.3"
@@ -12,6 +20,7 @@
     "dev:admin": "pnpm --filter @workshop/admin dev",
     "dev:api": "pnpm --filter @workshop/api dev",
     "build": "pnpm -r build",
+    "start:eb": "npm --workspace @workshop/api run start:prod",
     "lint": "pnpm -r lint",
     "format": "prettier . --write",
     "format:check": "prettier . --check"

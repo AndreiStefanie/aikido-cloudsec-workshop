@@ -160,7 +160,14 @@ export class InMemoryRepository implements Repository {
     session.streak = breakdown.nextStreak;
     session.correctActions += input.action === scenario.answer.action ? 1 : 0;
     session.correctOwners +=
-      input.ownerTeam === scenario.answer.ownerTeam ? 1 : 0;
+      input.action === 'ignore'
+        ? input.ignoreFeedback === scenario.answer.ignoreFeedback
+          ? 1
+          : 0
+        : scenario.answer.ownerTeam &&
+            input.ownerTeam === scenario.answer.ownerTeam
+          ? 1
+          : 0;
     session.currentScenarioIndex = nextScenarioIndex;
     session.updatedAt = new Date().toISOString();
     if (challengeCompleted) {
@@ -174,6 +181,7 @@ export class InMemoryRepository implements Repository {
       submittedIgnoreFeedback: input.ignoreFeedback,
       correctAction: scenario.answer.action,
       correctOwnerTeam: scenario.answer.ownerTeam,
+      correctIgnoreFeedback: scenario.answer.ignoreFeedback,
       actionScoreDelta: breakdown.actionScoreDelta,
       ownerScoreDelta: breakdown.ownerScoreDelta,
       streakBonusDelta: breakdown.streakBonusDelta,
@@ -182,7 +190,11 @@ export class InMemoryRepository implements Repository {
       isActionCorrect: input.action === scenario.answer.action,
       isOwnerCorrect:
         input.action !== 'ignore' &&
+        Boolean(scenario.answer.ownerTeam) &&
         input.ownerTeam === scenario.answer.ownerTeam,
+      isIgnoreFeedbackCorrect:
+        input.action === 'ignore' &&
+        input.ignoreFeedback === scenario.answer.ignoreFeedback,
       securityLesson: scenario.securityLesson,
       nextScenarioIndex,
       challengeCompleted,
@@ -370,10 +382,11 @@ export class InMemoryRepository implements Repository {
               scenarioId: scenario.id,
               title: scenario.title,
               submittedAction: decision.submittedAction,
-              submittedOwnerTeam: decision.submittedOwnerTeam,
-              submittedIgnoreFeedback: decision.submittedIgnoreFeedback,
+              submittedOwnerTeam: decision.submittedOwnerTeam ?? undefined,
+              submittedIgnoreFeedback: decision.submittedIgnoreFeedback ?? undefined,
               correctAction: decision.correctAction,
-              correctOwnerTeam: decision.correctOwnerTeam,
+              correctOwnerTeam: decision.correctOwnerTeam ?? undefined,
+              correctIgnoreFeedback: decision.correctIgnoreFeedback ?? undefined,
               actionScoreDelta: decision.actionScoreDelta,
               ownerScoreDelta: decision.ownerScoreDelta,
               streakBonusDelta: decision.streakBonusDelta,

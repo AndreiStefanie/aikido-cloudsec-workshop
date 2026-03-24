@@ -43,6 +43,10 @@ function componentTone(delta: number, positiveColor = 'text-mint-100') {
   return 'text-mist/70';
 }
 
+function secondaryLabel(result: ScenarioDecisionResult) {
+  return result.correctAction === 'ignore' ? 'vendor' : 'owner';
+}
+
 defineProps<{
   result: ScenarioDecisionResult;
   continuing?: boolean;
@@ -64,11 +68,21 @@ defineEmits<{ continue: [] }>();
       </span>
       <span
         class="pill"
-        :class="result.isOwnerCorrect ? 'pill-success' : 'pill-muted'"
+        :class="
+          result.correctAction === 'ignore'
+            ? result.isIgnoreFeedbackCorrect
+              ? 'pill-success'
+              : 'pill-muted'
+            : result.isOwnerCorrect
+              ? 'pill-success'
+              : 'pill-muted'
+        "
       >
         {{
-          result.submittedAction === 'ignore'
-            ? `Owner · ${result.correctOwnerTeam}`
+          result.correctAction === 'ignore'
+            ? result.isIgnoreFeedbackCorrect
+              ? 'Vendor feedback correct'
+              : 'Vendor feedback differs'
             : result.isOwnerCorrect
               ? 'Owner correct'
               : 'Owner differs'
@@ -87,10 +101,10 @@ defineEmits<{ continue: [] }>();
         {{ result.securityLesson }}
       </div>
       <div
-        v-if="result.correctAction === 'ignore'"
+        v-if="result.correctAction === 'ignore' && result.correctIgnoreFeedback"
         class="mt-4 text-sm text-mist"
       >
-        Correct owner: {{ result.correctOwnerTeam }}
+        Correct vendor feedback: {{ result.correctIgnoreFeedback }}
       </div>
       <div class="mt-4 text-sm" :class="scoreTextTone(result)">
         <span :class="componentTone(result.actionScoreDelta)">
@@ -100,7 +114,7 @@ defineEmits<{ continue: [] }>();
         <span class="text-mist/50"> / </span>
         <span :class="componentTone(result.ownerScoreDelta)">
           {{ result.ownerScoreDelta >= 0 ? '+' : ''
-          }}{{ result.ownerScoreDelta }} owner
+          }}{{ result.ownerScoreDelta }} {{ secondaryLabel(result) }}
         </span>
         <span class="text-mist/50"> / </span>
         <span :class="componentTone(result.streakBonusDelta)">

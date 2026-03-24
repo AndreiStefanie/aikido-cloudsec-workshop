@@ -49,6 +49,7 @@ const ownerRequired = computed(
 );
 
 const activeResource = ref<ResourceContext | null>(null);
+const diagramOpen = ref(false);
 const activeResourceRows = computed(
   () => activeResource.value?.detailRows ?? []
 );
@@ -82,8 +83,29 @@ function closeDetails() {
   activeResource.value = null;
 }
 
+function openDiagram() {
+  if (!props.scenario.diagram) {
+    return;
+  }
+
+  diagramOpen.value = true;
+}
+
+function closeDiagram() {
+  diagramOpen.value = false;
+}
+
 function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape' && activeResource.value) {
+  if (event.key !== 'Escape') {
+    return;
+  }
+
+  if (diagramOpen.value) {
+    closeDiagram();
+    return;
+  }
+
+  if (activeResource.value) {
     closeDetails();
   }
 }
@@ -128,6 +150,15 @@ onBeforeUnmount(() => {
         <p class="mt-3 text-sm leading-6 text-mist">
           {{ scenario.remediation }}
         </p>
+      </div>
+      <div v-if="scenario.diagram" class="mt-6">
+        <button
+          type="button"
+          class="text-sm font-semibold text-aikido-100 underline underline-offset-4 transition hover:text-white"
+          @click="openDiagram"
+        >
+          View diagram
+        </button>
       </div>
       <div class="mt-6">
         <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
@@ -223,7 +254,12 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div v-else class="mt-8">
+      <div
+        v-else-if="
+          selectedAction === 'ignore' && scenario.answer.action === 'ignore'
+        "
+        class="mt-8"
+      >
         <div class="flex items-center gap-2">
           <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
             Vendor feedback
@@ -262,6 +298,28 @@ onBeforeUnmount(() => {
               {{ option }}
             </div>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="diagramOpen && scenario.diagram"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-[#010124]/72 px-4 backdrop-blur-md"
+      @click.self="closeDiagram"
+    >
+      <div class="panel flex max-h-[85vh] w-full max-w-5xl flex-col p-6 md:p-8">
+        <div class="flex items-start justify-end">
+          <DialogCloseButton @click="closeDiagram" />
+        </div>
+
+        <div
+          class="mt-4 flex min-h-0 items-center justify-center overflow-hidden rounded-3xl border border-aikido-800 bg-aikido-950 p-4"
+        >
+          <img
+            :src="scenario.diagram.src"
+            :alt="scenario.diagram.alt"
+            class="block max-h-[calc(85vh-11rem)] w-auto max-w-full object-contain"
+          />
         </div>
       </div>
     </div>

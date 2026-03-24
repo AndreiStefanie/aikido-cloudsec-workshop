@@ -8,3 +8,4 @@ coverage
 .vite
 *.tsbuildinfo
 apps/api/tmp
+.elasticbeanstalk/

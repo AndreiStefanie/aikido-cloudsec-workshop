@@ -41,12 +41,19 @@ export interface ScenarioDetailRow {
 
 export interface ScenarioAnswer {
   action: ActionType;
-  ownerTeam: TeamType;
+  ownerTeam?: TeamType;
+  ignoreFeedback?: string;
 }
 
 export interface ScenarioSla {
   status: 'overdue' | 'due_soon';
   days: number;
+}
+
+export interface ScenarioDiagram {
+  src: string;
+  alt: string;
+  title?: string;
 }
 
 export interface ScenarioDefinition {
@@ -57,6 +64,7 @@ export interface ScenarioDefinition {
   severityLabel: 'low' | 'medium' | 'high' | 'critical';
   sla: ScenarioSla;
   remediation: string;
+  diagram?: ScenarioDiagram;
   resources: ResourceContext[];
   securityLesson: string;
   ignoreFeedbackOptions: string[];
@@ -69,7 +77,6 @@ export interface ChallengeDefinition {
   name: string;
   description: string;
   joinCode: string;
-  joinPassword?: string;
   isActive: boolean;
   scenarios: ScenarioDefinition[];
 }
@@ -98,10 +105,11 @@ export interface ScenarioDecisionInput {
 export interface ScenarioDecisionResult {
   scenarioId: string;
   submittedAction: ActionType;
-  submittedOwnerTeam?: TeamType;
+  submittedOwnerTeam?: TeamType | null;
   submittedIgnoreFeedback?: string;
   correctAction: ActionType;
-  correctOwnerTeam: TeamType;
+  correctOwnerTeam?: TeamType;
+  correctIgnoreFeedback?: string;
   actionScoreDelta: number;
   ownerScoreDelta: number;
   streakBonusDelta: number;
@@ -109,6 +117,7 @@ export interface ScenarioDecisionResult {
   totalScore: number;
   isActionCorrect: boolean;
   isOwnerCorrect: boolean;
+  isIgnoreFeedbackCorrect: boolean;
   securityLesson: string;
   nextScenarioIndex: number;
   challengeCompleted: boolean;
@@ -121,7 +130,8 @@ export interface CompletedScenarioReview {
   submittedOwnerTeam?: TeamType;
   submittedIgnoreFeedback?: string;
   correctAction: ActionType;
-  correctOwnerTeam: TeamType;
+  correctOwnerTeam?: TeamType;
+  correctIgnoreFeedback?: string;
   actionScoreDelta: number;
   ownerScoreDelta: number;
   streakBonusDelta: number;
@@ -137,7 +147,7 @@ export interface LeaderboardEntry {
 }
 
 export interface PlayerBootstrap {
-  challenge: Omit<ChallengeDefinition, 'scenarios' | 'joinPassword'> & {
+  challenge: Omit<ChallengeDefinition, 'scenarios'> & {
     scenarioCount: number;
   };
   session: ParticipantSession;
@@ -191,7 +201,6 @@ export interface UpsertChallengeInput {
   name: string;
   description: string;
   joinCode: string;
-  joinPassword?: string;
   isActive: boolean;
 }
 
@@ -202,6 +211,7 @@ export interface UpsertScenarioInput {
   severityLabel: ScenarioDefinition['severityLabel'];
   sla: ScenarioSla;
   remediation: string;
+  diagram?: ScenarioDiagram;
   resources: ResourceContext[];
   securityLesson: string;
   ignoreFeedbackOptions: string[];

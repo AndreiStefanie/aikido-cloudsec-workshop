@@ -89,6 +89,7 @@ export const useSessionStore = defineStore('session', {
           participantName,
           existingToken: persisted?.token,
         });
+        this.error = '';
         this.feedback = null;
         this.pendingAdvance = null;
         this.persist();
@@ -105,6 +106,7 @@ export const useSessionStore = defineStore('session', {
       this.error = '';
       try {
         this.bootstrap = await resumeSession({ challengeSlug, token });
+        this.error = '';
         this.feedback = null;
         this.pendingAdvance = null;
         this.persist();
@@ -146,10 +148,11 @@ export const useSessionStore = defineStore('session', {
             scenarioId: result.scenarioId,
             title: currentScenario.title,
             submittedAction: result.submittedAction,
-            submittedOwnerTeam: result.submittedOwnerTeam,
-            submittedIgnoreFeedback: result.submittedIgnoreFeedback,
+            submittedOwnerTeam: result.submittedOwnerTeam ?? undefined,
+            submittedIgnoreFeedback: result.submittedIgnoreFeedback ?? undefined,
             correctAction: result.correctAction,
-            correctOwnerTeam: result.correctOwnerTeam,
+            correctOwnerTeam: result.correctOwnerTeam ?? undefined,
+            correctIgnoreFeedback: result.correctIgnoreFeedback ?? undefined,
             actionScoreDelta: result.actionScoreDelta,
             ownerScoreDelta: result.ownerScoreDelta,
             streakBonusDelta: result.streakBonusDelta,

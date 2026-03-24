@@ -45,54 +45,28 @@ function dismissError() {
 
 <template>
   <main
-    class="mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-4 py-4 md:px-8 md:py-6"
+    class="mx-auto flex min-h-screen max-w-4xl flex-col justify-center px-4 py-6 md:px-8 md:py-8"
   >
-    <section class="grid gap-4 lg:grid-cols-[0.95fr_0.9fr] lg:items-stretch">
-      <div class="panel overflow-hidden p-6 md:p-7">
-        <WorkshopLockup />
-        <h1
-          class="mt-4 max-w-lg font-display text-5xl leading-[0.95] text-white md:text-6xl"
-        >
-          Fix it, snooze it, ignore it
-        </h1>
-        <p class="mt-4 max-w-lg text-base leading-7 text-mist md:text-lg">
-          Make the call on real cloud findings. Decide what matters, who owns
-          it, and how your decisions stack up.
-        </p>
+    <section class="panel p-6 md:p-8">
+      <WorkshopLockup />
+      <h1
+        class="mt-4 max-w-2xl font-display text-4xl leading-[0.95] text-white md:text-5xl"
+      >
+        Fix it, snooze it, ignore it
+      </h1>
+      <p class="mt-4 max-w-2xl text-base leading-7 text-mist md:text-lg">
+        Make the call on real cloud findings. Decide what matters, who owns it,
+        and how your decisions stack up.
+      </p>
 
-        <div class="surface-subtle mt-5 p-4">
-          <div
-            class="text-xs font-semibold uppercase tracking-[0.18em] text-mist/70"
-          >
-            Current challenge
-          </div>
-          <div class="mt-2 font-display text-xl text-white md:text-2xl">
-            AWS: Identity and Data Exposure
-          </div>
-          <p class="mt-2 max-w-lg text-sm leading-6 text-mist">
-            Three AWS scenarios focused on prioritization and ownership under
-            pressure.
-          </p>
-          <div class="mt-3 flex flex-wrap gap-2">
-            <span class="pill pill-muted normal-case tracking-normal"
-              >3 scenarios</span
-            >
-            <span class="pill pill-muted normal-case tracking-normal"
-              >4 teams</span
-            >
-            <span class="pill pill-muted normal-case tracking-normal">AWS</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel p-6 md:p-7">
+      <div class="mt-8">
         <h2 class="font-display text-3xl text-white">Join the workshop</h2>
         <p class="mt-2 text-sm leading-6 text-mist">
-          Enter your workshop code and pick a unique name.
+          Pick an unique name, find the code, and join the workshop.
         </p>
 
         <form class="mt-4 space-y-3" @submit.prevent="submit">
-          <label class="block">
+          <label class="mb-4 block">
             <span class="mb-2 block text-sm font-semibold text-mist"
               >Unique name</span
             >
@@ -109,10 +83,21 @@ function dismissError() {
             >
             <input
               v-model="form.joinCode"
-              class="w-full rounded-2xl border-aikido-800 bg-aikido-950 px-4 py-3 uppercase text-white"
-              placeholder="AWSLAB"
+              class="w-full rounded-2xl border-aikido-800 bg-aikido-950 px-4 py-3 text-white"
+              placeholder="Finding this is part of the workshop"
               required
             />
+            <p class="mt-2 text-sm leading-6 text-mist/80">
+              You will probably need this:
+              <a
+                class="font-semibold text-aikido-100 underline underline-offset-4 hover:text-white"
+                href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-metadata-security-credentials.html"
+                target="_blank"
+                rel="noreferrer"
+              >
+                AWS instance metadata credentials docs
+              </a>
+            </p>
           </label>
           <button
             type="submit"
@@ -139,10 +124,6 @@ function dismissError() {
             </a>
           </div>
         </form>
-
-        <p class="mt-4 text-xs uppercase tracking-[0.18em] text-mist/70">
-          No personal data required.
-        </p>
         <div
           v-if="sessionStore.error"
           class="mt-3 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200"

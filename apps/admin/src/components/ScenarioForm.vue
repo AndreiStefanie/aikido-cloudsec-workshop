@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { teams } from '@workshop/shared';
+import { teams, type TeamType } from '@workshop/shared';
 import type { ScenarioDefinition, UpsertScenarioInput } from '@workshop/shared';
 import { reactive, watch } from 'vue';
 
@@ -28,10 +28,14 @@ const form = reactive({
   slaStatus: 'overdue' as UpsertScenarioInput['sla']['status'],
   slaDays: 30,
   remediation: '',
+  diagramSrc: '',
+  diagramAlt: '',
+  diagramTitle: '',
   resourcesJson: '[]',
   ignoreFeedbackOptionsText: '',
   answerAction: 'fix' as UpsertScenarioInput['answer']['action'],
-  answerOwner: 'DevOps Team' as UpsertScenarioInput['answer']['ownerTeam'],
+  answerOwner: 'DevOps Team' as TeamType,
+  answerIgnoreFeedback: '',
   securityLesson: '',
 });
 
@@ -47,12 +51,16 @@ watch(
     form.slaStatus = value?.sla.status ?? 'overdue';
     form.slaDays = value?.sla.days ?? 30;
     form.remediation = value?.remediation ?? '';
+    form.diagramSrc = value?.diagram?.src ?? '';
+    form.diagramAlt = value?.diagram?.alt ?? '';
+    form.diagramTitle = value?.diagram?.title ?? '';
     form.resourcesJson = JSON.stringify(value?.resources ?? [], null, 2);
     form.ignoreFeedbackOptionsText = (value?.ignoreFeedbackOptions ?? []).join(
       '\n'
     );
     form.answerAction = value?.answer.action ?? 'fix';
     form.answerOwner = value?.answer.ownerTeam ?? 'DevOps Team';
+    form.answerIgnoreFeedback = value?.answer.ignoreFeedback ?? '';
     form.securityLesson = value?.securityLesson ?? '';
     formError.message = '';
   },
@@ -67,8 +75,23 @@ function submit() {
       .map(option => option.trim())
       .filter(Boolean);
 
+    const hasDiagramFields = Boolean(
+      form.diagramSrc.trim() ||
+      form.diagramAlt.trim() ||
+      form.diagramTitle.trim()
+    );
+
     if (ignoreFeedbackOptions.length !== 3) {
       formError.message = 'Provide exactly 3 ignore feedback options.';
+      return;
+    }
+
+    if (
+      hasDiagramFields &&
+      (!form.diagramSrc.trim() || !form.diagramAlt.trim())
+    ) {
+      formError.message =
+        'Provide both a diagram image path and alt text, or leave all diagram fields empty.';
       return;
     }
 
@@ -85,12 +108,24 @@ function submit() {
           days: Number(form.slaDays),
         },
         remediation: form.remediation,
+        diagram: hasDiagramFields
+          ? {
+              src: form.diagramSrc.trim(),
+              alt: form.diagramAlt.trim(),
+              title: form.diagramTitle.trim() || undefined,
+            }
+          : undefined,
         resources,
         ignoreFeedbackOptions,
         securityLesson: form.securityLesson,
         answer: {
           action: form.answerAction,
-          ownerTeam: form.answerOwner,
+          ownerTeam:
+            form.answerAction === 'ignore' ? undefined : form.answerOwner,
+          ignoreFeedback:
+            form.answerAction === 'ignore'
+              ? form.answerIgnoreFeedback || undefined
+              : undefined,
         },
       },
     });
@@ -186,6 +221,32 @@ function submit() {
         />
       </label>
       <label class="block md:col-span-2">
+        <span class="mb-2 block text-sm font-semibold">Diagram image path</span>
+        <input
+          v-model="form.diagramSrc"
+          class="w-full rounded-2xl border-slate-200 px-4 py-3"
+          placeholder="/scenario-diagrams/aws/bastion-prod.svg"
+        />
+      </label>
+      <label class="block md:col-span-2">
+        <span class="mb-2 block text-sm font-semibold">Diagram alt text</span>
+        <input
+          v-model="form.diagramAlt"
+          class="w-full rounded-2xl border-slate-200 px-4 py-3"
+          placeholder="Private bastion host reachable only through the corporate VPN"
+        />
+      </label>
+      <label class="block md:col-span-2">
+        <span class="mb-2 block text-sm font-semibold">
+          Diagram title (optional)
+        </span>
+        <input
+          v-model="form.diagramTitle"
+          class="w-full rounded-2xl border-slate-200 px-4 py-3"
+          placeholder="Private access path"
+        />
+      </label>
+      <label class="block md:col-span-2">
         <span class="mb-2 block text-sm font-semibold">Resources JSON</span>
         <textarea
           v-model="form.resourcesJson"
@@ -217,7 +278,7 @@ function submit() {
           <option value="ignore">Ignore</option>
         </select>
       </label>
-      <label class="block">
+      <label v-if="form.answerAction !== 'ignore'" class="block">
         <span class="mb-2 block text-sm font-semibold">Correct owner</span>
         <select
           v-model="form.answerOwner"
@@ -227,6 +288,16 @@ function submit() {
             {{ team }}
           </option>
         </select>
+      </label>
+      <label v-if="form.answerAction === 'ignore'" class="block md:col-span-2">
+        <span class="mb-2 block text-sm font-semibold">
+          Correct vendor feedback
+        </span>
+        <input
+          v-model="form.answerIgnoreFeedback"
+          class="w-full rounded-2xl border-slate-200 px-4 py-3"
+          placeholder="Required when correct action is Ignore"
+        />
       </label>
       <label class="block md:col-span-2">
         <span class="mb-2 block text-sm font-semibold">Security lesson</span>

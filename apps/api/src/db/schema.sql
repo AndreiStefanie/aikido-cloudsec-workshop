@@ -5,7 +5,6 @@ CREATE TABLE
     NAME TEXT NOT NULL,
     description TEXT NOT NULL,
     join_code TEXT NOT NULL,
-    join_password TEXT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -20,6 +19,7 @@ CREATE TABLE
     description TEXT NOT NULL,
     severity_label TEXT NOT NULL,
     remediation TEXT NOT NULL,
+    diagram JSONB,
     resources JSONB NOT NULL,
     security_lesson TEXT NOT NULL,
     ignore_feedback_options JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -38,7 +38,7 @@ CREATE TABLE
     score INTEGER NOT NULL DEFAULT 0,
     streak INTEGER NOT NULL DEFAULT 0,
     correct_actions INTEGER NOT NULL DEFAULT 0,
-    correct_owners INTEGER NOT NULL DEFAULT 0,
+    correct_secondary INTEGER NOT NULL DEFAULT 0,
     completed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -50,7 +50,7 @@ CREATE TABLE
     session_id UUID NOT NULL REFERENCES participant_sessions (id) ON DELETE CASCADE,
     scenario_id UUID NOT NULL REFERENCES scenarios (id) ON DELETE CASCADE,
     submitted_action TEXT NOT NULL,
-    submitted_owner_team TEXT NOT NULL,
+    submitted_owner_team TEXT,
     result JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (session_id, scenario_id)

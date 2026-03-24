@@ -2,6 +2,8 @@ import cors from 'cors';
 import express from 'express';
 import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { ZodError } from 'zod';
 
 import { env } from './config/env.js';
@@ -12,6 +14,11 @@ import { createPlayerRouter } from './modules/player/routes.js';
 
 const repository = createRepository();
 const app = express();
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const playerDistDir = path.resolve(currentDir, '../../player/dist');
+const adminDistDir = path.resolve(currentDir, '../../admin/dist');
+const playerIndexPath = path.join(playerDistDir, 'index.html');
+const adminIndexPath = path.join(adminDistDir, 'index.html');
 
 app.set('trust proxy', 1);
 app.use(helmet());
@@ -29,6 +36,37 @@ app.get('/health', (_request, response) => {
 app.use('/api/player', createPlayerRouter(repository));
 app.use('/api/leaderboard', createLeaderboardRouter(repository));
 app.use('/api/admin', createAdminRouter(repository));
+
+app.use('/admin', express.static(adminDistDir, { index: false }));
+app.use(express.static(playerDistDir, { index: false }));
+
+app.use('/admin', (request, response, next) => {
+  if (
+    request.method !== 'GET' ||
+    !request.accepts('html') ||
+    request.path.includes('.')
+  ) {
+    next();
+    return;
+  }
+
+  response.sendFile(adminIndexPath);
+});
+
+app.use((request, response, next) => {
+  if (
+    request.method !== 'GET' ||
+    request.path.startsWith('/api/') ||
+    request.path.startsWith('/admin') ||
+    !request.accepts('html') ||
+    request.path.includes('.')
+  ) {
+    next();
+    return;
+  }
+
+  response.sendFile(playerIndexPath);
+});
 
 app.use(
   (

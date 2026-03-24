@@ -8,7 +8,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().optional(),
   ADMIN_USERNAME: z.string().min(1),
   ADMIN_PASSWORD: z.string().min(1),
-  WORKSHOP_JOIN_PASSWORD: z.string().optional(),
+  WORKSHOP_JOIN_CODE: z.string().min(1).default('AWSLAB'),
   ALLOWED_ORIGINS: z
     .string()
     .default('http://localhost:5173,http://localhost:5174'),

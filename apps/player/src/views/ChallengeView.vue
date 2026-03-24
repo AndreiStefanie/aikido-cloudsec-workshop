@@ -60,6 +60,10 @@ function componentTone(delta: number, positiveColor = 'text-mint-100') {
   return 'text-mist/70';
 }
 
+function secondaryLabel(review: { correctAction: ActionType }) {
+  return review.correctAction === 'ignore' ? 'vendor' : 'owner';
+}
+
 async function ensureSession() {
   const challengeSlug = route.params.challengeSlug as string;
   if (sessionStore.bootstrap?.challenge.slug === challengeSlug) {
@@ -89,7 +93,9 @@ async function submit() {
   if (
     !selectedAction.value ||
     (selectedAction.value !== 'ignore' && !selectedOwner.value) ||
-    (selectedAction.value === 'ignore' && !selectedIgnoreFeedback.value)
+    (selectedAction.value === 'ignore' &&
+      sessionStore.bootstrap?.currentScenario?.answer.action === 'ignore' &&
+      !selectedIgnoreFeedback.value)
   ) {
     return;
   }
@@ -100,10 +106,13 @@ async function submit() {
       sessionStore.answer({
         action: selectedAction.value,
         ownerTeam:
-          selectedAction.value === 'ignore' ? undefined : selectedOwner.value,
-        ignoreFeedback:
           selectedAction.value === 'ignore'
-            ? selectedIgnoreFeedback.value
+            ? undefined
+            : selectedOwner.value ?? undefined,
+        ignoreFeedback:
+          selectedAction.value === 'ignore' &&
+          sessionStore.bootstrap?.currentScenario?.answer.action === 'ignore'
+            ? selectedIgnoreFeedback.value ?? undefined
             : undefined,
       }),
       new Promise(resolve => window.setTimeout(resolve, 250)),
@@ -228,7 +237,10 @@ watch(selectedAction, action => {
           :disabled="
             !selectedAction ||
             (selectedAction !== 'ignore' && !selectedOwner) ||
-            (selectedAction === 'ignore' && !selectedIgnoreFeedback) ||
+            (selectedAction === 'ignore' &&
+              sessionStore.bootstrap?.currentScenario?.answer.action ===
+                'ignore' &&
+              !selectedIgnoreFeedback) ||
             sessionStore.loading
           "
           @click="submit"
@@ -313,7 +325,7 @@ watch(selectedAction, action => {
                 <span class="text-mist/50"> / </span>
                 <span :class="componentTone(review.ownerScoreDelta)">
                   {{ review.ownerScoreDelta >= 0 ? '+' : ''
-                  }}{{ review.ownerScoreDelta }} owner
+                  }}{{ review.ownerScoreDelta }} {{ secondaryLabel(review) }}
                 </span>
                 <span class="text-mist/50"> / </span>
                 <span :class="componentTone(review.streakBonusDelta)">

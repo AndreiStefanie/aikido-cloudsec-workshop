@@ -42,6 +42,12 @@ The workshop is presented as **hosted by Aikido Security** without turning the a
    - `pnpm dev:player`
    - `pnpm dev:admin`
 
+Important local env vars:
+
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
+- `WORKSHOP_JOIN_CODE` for the seeded in-memory challenge code
+
 Default local URLs:
 
 - Player app: `http://localhost:5173`
@@ -76,15 +82,54 @@ Default local URLs:
 - `POST /api/admin/challenges/:challengeId/scenarios`
 - `PUT /api/admin/challenges/:challengeId/scenarios/:scenarioId`
 
-## Deployment notes
+## Elastic Beanstalk deployment
 
-The target deployment is AWS Elastic Beanstalk.
+The current deployment path is a **single Elastic Beanstalk Node.js environment** that serves:
 
-- Build the monorepo with `pnpm build`
-- Serve the backend with `pnpm --filter @workshop/api start:prod`
-- Deploy the built frontend assets separately or behind the same ALB/CDN, depending on the final AWS layout
-- Use RDS Postgres and apply [schema.sql](/Users/andrei/projects/aikido/aikido-cloudsec-workshop/apps/api/src/db/schema.sql)
-- Use the Procfile at [infra/elastic-beanstalk/Procfile](/Users/andrei/projects/aikido/aikido-cloudsec-workshop/infra/elastic-beanstalk/Procfile) for the API environment
+- player SPA at `/`
+- admin SPA at `/admin`
+- API at `/api`
+
+This works today with the **seeded in-memory repository**, so leave `DATABASE_URL` unset.
+
+### Prepare the repo
+
+1. Install dependencies with `pnpm install`
+2. Build everything with `pnpm build`
+3. Confirm the root [Procfile](/Users/andrei/projects/aikido/aikido-cloudsec-workshop/Procfile) is included in the deploy bundle
+
+The production entrypoint is:
+
+- `npm run start:eb`
+
+### Create the environment
+
+1. Review [`.elasticbeanstalk/config.yml`](/Users/andrei/projects/aikido/aikido-cloudsec-workshop/.elasticbeanstalk/config.yml) and adjust:
+   - `default_region`
+   - `environment`
+     if you want different names or region defaults
+2. Run `eb init` if this is the first time you configure the application in your AWS account
+3. Create the Node.js environment with `eb create`
+4. Set environment properties:
+   - `ADMIN_USERNAME`
+   - `ADMIN_PASSWORD`
+   - `WORKSHOP_JOIN_CODE`
+   - `PORT` if needed
+   - `ALLOWED_ORIGINS` only if you later move the frontends off the same origin
+
+### Deploy
+
+1. Keep `DATABASE_URL` unset so the API uses the seeded in-memory store
+2. Run `eb deploy` from the repo root
+
+### Notes
+
+- [`.ebignore`](/Users/andrei/projects/aikido/aikido-cloudsec-workshop/.ebignore) excludes local-only files and `node_modules` from the source bundle.
+- [`.ebextensions/10-storage-gp3.config`](/Users/andrei/projects/aikido/aikido-cloudsec-workshop/.ebextensions/10-storage-gp3.config) explicitly pins the Elastic Beanstalk EC2 root volume type to `gp3`.
+- [`.platform/hooks/predeploy/01_verify_build_artifacts.sh`](/Users/andrei/projects/aikido/aikido-cloudsec-workshop/.platform/hooks/predeploy/01_verify_build_artifacts.sh) fails the deployment if the built API/frontend/shared artifacts are missing from the bundle.
+- The admin app is built with base path `/admin/`, so direct navigation to `/admin` works behind Express.
+- The API server serves the built assets from `apps/player/dist` and `apps/admin/dist`.
+- The Postgres production path is still incomplete because [postgresRepository.ts](/Users/andrei/projects/aikido/aikido-cloudsec-workshop/apps/api/src/modules/sessions/postgresRepository.ts) is not implemented yet.
 
 ## Gaps to finish next
 
