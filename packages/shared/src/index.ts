@@ -9,8 +9,21 @@ export const teams = [
 ] as const;
 export type TeamType = (typeof teams)[number];
 
+export const fallbackSnoozeReasonOptions = [
+  'Remediation should be deferred until the next scheduled maintenance window because the current context does not justify immediate disruption.',
+  'This finding should be snoozed until the owning team confirms whether the affected resource is still actively used in production.',
+  'The issue is real, but the current exposure and operational context support documenting a temporary exception while remediation is planned.',
+] as const;
+
+export const fallbackIgnoreFeedbackOptions = [
+  'Suppress findings like this automatically when the effective attack path is already blocked by compensating controls.',
+  'Add richer context so non-actionable findings can be identified earlier without a manual review.',
+  'Recognize when newer platform-native controls already cover the reported issue and suppress the finding accordingly.',
+] as const;
+
 export type ResourceType =
   | 'Container'
+  | 'CodeRepository'
   | 'Kubernetes'
   | 'Serverless'
   | 'VirtualMachine'
@@ -64,6 +77,7 @@ export interface ScenarioDefinition {
   diagram?: ScenarioDiagram;
   resources: ResourceContext[];
   securityLesson: string;
+  ownerOptions?: TeamType[];
   snoozeReasonOptions?: string[];
   ignoreFeedbackOptions: string[];
   answer: ScenarioAnswer;
@@ -218,6 +232,7 @@ export interface UpsertScenarioInput {
   diagram?: ScenarioDiagram;
   resources: ResourceContext[];
   securityLesson: string;
+  ownerOptions?: TeamType[];
   snoozeReasonOptions?: string[];
   ignoreFeedbackOptions: string[];
   answer: ScenarioAnswer;

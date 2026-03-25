@@ -1,0 +1,33 @@
+<svg width="1500" height="520" viewBox="0 0 1500 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1500" height="520" rx="32" fill="#FFFFFF"/>
+  <rect x="60" y="60" width="1380" height="400" rx="28" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2"/>
+
+  <line x1="300" y1="255" x2="430" y2="255" stroke="#94A3B8" stroke-width="4" stroke-dasharray="10 10"/>
+  <polygon points="430,255 414,245 414,265" fill="#94A3B8"/>
+
+  <line x1="670" y1="255" x2="800" y2="255" stroke="#94A3B8" stroke-width="4" stroke-dasharray="10 10"/>
+  <polygon points="800,255 784,245 784,265" fill="#94A3B8"/>
+
+  <line x1="1040" y1="255" x2="1170" y2="255" stroke="#94A3B8" stroke-width="4" stroke-dasharray="10 10"/>
+  <polygon points="1170,255 1154,245 1154,265" fill="#94A3B8"/>
+
+  <rect x="80" y="150" width="220" height="190" rx="24" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+  <image href="/scenario-diagrams/aws/EC2.svg" x="145" y="172" width="90" height="90" preserveAspectRatio="xMidYMid meet"/>
+  <text x="190" y="382" text-anchor="middle" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">uploads-web-01</text>
+  <text x="190" y="416" text-anchor="middle" fill="#64748B" font-family="Inter, Arial, sans-serif" font-size="26">EC2 Instance</text>
+
+  <rect x="450" y="150" width="220" height="190" rx="24" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+  <image href="/scenario-diagrams/aws/S3.svg" x="515" y="172" width="90" height="90" preserveAspectRatio="xMidYMid meet"/>
+  <text x="560" y="382" text-anchor="middle" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">customer-uploads-prod</text>
+  <text x="560" y="416" text-anchor="middle" fill="#64748B" font-family="Inter, Arial, sans-serif" font-size="26">S3 Bucket</text>
+
+  <rect x="820" y="150" width="220" height="190" rx="24" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+  <image href="/scenario-diagrams/aws/Lambda.svg" x="885" y="172" width="90" height="90" preserveAspectRatio="xMidYMid meet"/>
+  <text x="930" y="382" text-anchor="middle" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">upload-processor</text>
+  <text x="930" y="416" text-anchor="middle" fill="#64748B" font-family="Inter, Arial, sans-serif" font-size="26">Lambda Function</text>
+
+  <rect x="1190" y="150" width="220" height="190" rx="24" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+  <image href="/scenario-diagrams/aws/DynamoDB.svg" x="1255" y="172" width="90" height="90" preserveAspectRatio="xMidYMid meet"/>
+  <text x="1300" y="382" text-anchor="middle" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">upload-jobs-prod</text>
+  <text x="1300" y="416" text-anchor="middle" fill="#64748B" font-family="Inter, Arial, sans-serif" font-size="26">DynamoDB Table</text>
+</svg>

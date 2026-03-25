@@ -19,6 +19,7 @@ const resourceSchema = z.object({
   name: z.string().min(1),
   type: z.enum([
     'Container',
+    'CodeRepository',
     'Kubernetes',
     'Serverless',
     'VirtualMachine',
@@ -61,6 +62,7 @@ const scenarioSchema = z
       .optional(),
     resources: z.array(resourceSchema).min(1),
     securityLesson: z.string().min(1),
+    ownerOptions: z.array(z.enum(teams)).optional(),
     snoozeReasonOptions: z.array(z.string().min(1)).optional(),
     ignoreFeedbackOptions: z.array(z.string().min(1)),
     answer: z.object({
@@ -114,6 +116,25 @@ const scenarioSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Fix scenarios require a correct owner.',
+        path: ['answer', 'ownerTeam'],
+      });
+    }
+
+    if ((scenario.ownerOptions ?? []).length < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Fix scenarios require at least 1 owner option.',
+        path: ['ownerOptions'],
+      });
+    }
+
+    if (
+      scenario.answer.ownerTeam &&
+      !(scenario.ownerOptions ?? []).includes(scenario.answer.ownerTeam)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Correct owner must be one of the configured owner options.',
         path: ['answer', 'ownerTeam'],
       });
     }

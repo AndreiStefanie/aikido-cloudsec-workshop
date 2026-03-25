@@ -40,6 +40,14 @@ const decisionSchema = z
         path: ['snoozeReason'],
       });
     }
+
+    if (decision.action === 'ignore' && !decision.ignoreFeedback) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Vendor feedback is required for ignore decisions.',
+        path: ['ignoreFeedback'],
+      });
+    }
   });
 
 export function createPlayerRouter(repository: Repository) {

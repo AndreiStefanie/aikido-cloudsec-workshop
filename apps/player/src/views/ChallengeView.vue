@@ -103,9 +103,7 @@ async function submit() {
     !selectedAction.value ||
     (selectedAction.value === 'fix' && !selectedOwner.value) ||
     (selectedAction.value === 'snooze' && !selectedSnoozeReason.value) ||
-    (selectedAction.value === 'ignore' &&
-      sessionStore.bootstrap?.currentScenario?.answer.action === 'ignore' &&
-      !selectedIgnoreFeedback.value)
+    (selectedAction.value === 'ignore' && !selectedIgnoreFeedback.value)
   ) {
     return;
   }
@@ -124,8 +122,7 @@ async function submit() {
             ? (selectedSnoozeReason.value ?? undefined)
             : undefined,
         ignoreFeedback:
-          selectedAction.value === 'ignore' &&
-          sessionStore.bootstrap?.currentScenario?.answer.action === 'ignore'
+          selectedAction.value === 'ignore'
             ? (selectedIgnoreFeedback.value ?? undefined)
             : undefined,
       }),
@@ -264,10 +261,7 @@ watch(selectedAction, action => {
             !selectedAction ||
             (selectedAction === 'fix' && !selectedOwner) ||
             (selectedAction === 'snooze' && !selectedSnoozeReason) ||
-            (selectedAction === 'ignore' &&
-              sessionStore.bootstrap?.currentScenario?.answer.action ===
-                'ignore' &&
-              !selectedIgnoreFeedback) ||
+            (selectedAction === 'ignore' && !selectedIgnoreFeedback) ||
             sessionStore.loading
           "
           @click="submit"

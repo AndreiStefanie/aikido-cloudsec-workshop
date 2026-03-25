@@ -4,6 +4,8 @@ import {
   type ResourceContext,
   type ScenarioDefinition,
   type TeamType,
+  fallbackIgnoreFeedbackOptions,
+  fallbackSnoozeReasonOptions,
   teams,
 } from '@workshop/shared';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
@@ -46,6 +48,15 @@ const slaClass = computed(() =>
 );
 
 const ownerRequired = computed(() => selectedAction.value === 'fix');
+const ownerChoices = computed(() => props.scenario.ownerOptions ?? [...teams]);
+const snoozeReasonChoices = computed(
+  () => props.scenario.snoozeReasonOptions ?? [...fallbackSnoozeReasonOptions]
+);
+const ignoreFeedbackChoices = computed(() =>
+  props.scenario.ignoreFeedbackOptions.length
+    ? props.scenario.ignoreFeedbackOptions
+    : [...fallbackIgnoreFeedbackOptions]
+);
 
 const activeResource = ref<ResourceContext | null>(null);
 const diagramOpen = ref(false);
@@ -65,6 +76,10 @@ const detailRowsWithTags = computed(() => {
 
   return rows;
 });
+
+const diagramIsSvg = computed(() =>
+  props.scenario.diagram?.src.toLowerCase().endsWith('.svg')
+);
 
 function hasResourceDetails(resource: ResourceContext) {
   return Boolean(resource.detailRows?.length || resource.tags?.length);
@@ -237,7 +252,7 @@ onBeforeUnmount(() => {
         >
         <div class="mt-3 grid gap-3 sm:grid-cols-2">
           <button
-            v-for="team in teams"
+            v-for="team in ownerChoices"
             :key="team"
             type="button"
             class="rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition"
@@ -276,7 +291,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="mt-3 grid gap-3">
           <button
-            v-for="option in scenario.snoozeReasonOptions ?? []"
+            v-for="option in snoozeReasonChoices"
             :key="option"
             type="button"
             class="rounded-2xl border px-4 py-4 text-left transition"
@@ -294,12 +309,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div
-        v-else-if="
-          selectedAction === 'ignore' && scenario.answer.action === 'ignore'
-        "
-        class="mt-8"
-      >
+      <div v-else-if="selectedAction === 'ignore'" class="mt-8">
         <div class="flex items-center gap-2">
           <div class="text-xs uppercase tracking-[0.2em] text-mist/60">
             Vendor feedback
@@ -323,7 +333,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="mt-3 grid gap-3">
           <button
-            v-for="option in scenario.ignoreFeedbackOptions"
+            v-for="option in ignoreFeedbackChoices"
             :key="option"
             type="button"
             class="rounded-2xl border px-4 py-4 text-left transition"
@@ -355,7 +365,21 @@ onBeforeUnmount(() => {
         <div
           class="mt-4 flex min-h-0 items-center justify-center overflow-hidden rounded-3xl border border-aikido-800 bg-aikido-950 p-4"
         >
+          <object
+            v-if="diagramIsSvg"
+            :data="scenario.diagram.src"
+            type="image/svg+xml"
+            :aria-label="scenario.diagram.alt"
+            class="block h-auto max-h-[calc(85vh-11rem)] w-full max-w-full"
+          >
+            <img
+              :src="scenario.diagram.src"
+              :alt="scenario.diagram.alt"
+              class="block max-h-[calc(85vh-11rem)] w-auto max-w-full object-contain"
+            />
+          </object>
           <img
+            v-else
             :src="scenario.diagram.src"
             :alt="scenario.diagram.alt"
             class="block max-h-[calc(85vh-11rem)] w-auto max-w-full object-contain"

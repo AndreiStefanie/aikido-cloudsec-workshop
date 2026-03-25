@@ -70,6 +70,7 @@ export const seedChallenges: ChallengeDefinition[] = [
         ],
         securityLesson:
           'Unused credentials should be removed, not merely monitored. Dormant IAM users with active keys create unnecessary risk, and simple context such as ownership tags is often enough to route the fix to the right team.',
+        ownerOptions: ['DevOps Team', 'Security Team'],
         answer: {
           action: 'fix',
           ownerTeam: 'DevOps Team',
@@ -182,7 +183,6 @@ export const seedChallenges: ChallengeDefinition[] = [
             account: 'AWS production account',
             detailsLabel: 'View details',
             detailRows: [
-              { field: 'Installed Package', value: 'openssh-server' },
               { field: 'Critical Vulnerabilities', value: '0' },
               { field: 'High Vulnerabilities', value: '2' },
               { field: 'Public IP', value: 'None' },
@@ -219,6 +219,10 @@ export const seedChallenges: ChallengeDefinition[] = [
           status: 'overdue',
           days: 32,
         },
+        diagram: {
+          src: '/scenario-diagrams/aws/lambda-upload-processor.svg',
+          alt: 'Public EC2 instance uploading files to an S3 bucket, which triggers a Lambda function that writes job state to a DynamoDB table.',
+        },
         remediation:
           'Review the execution role attached to the serverless function and remove broad administrative permissions. Replace them with a least-privilege policy that grants only the actions required for the function runtime, logging, event handling, and downstream service access.',
         ignoreFeedbackOptions: [
@@ -228,12 +232,31 @@ export const seedChallenges: ChallengeDefinition[] = [
         ],
         resources: [
           {
+            id: 'res-aws-8b',
+            name: 'uploads-web-01',
+            type: 'VirtualMachine',
+            assetTypeLabel: 'AWS::EC2::Instance',
+            createdAt: '2024-02-20',
+            tags: ['owner:application-team', 'service:uploads-web'],
+            account: 'AWS production account',
+            detailsLabel: 'View details',
+            detailRows: [
+              { field: 'Public IP', value: 'Present' },
+              { field: 'Application Role', value: 'Upload entrypoint' },
+              {
+                field: 'Observed Usage',
+                value:
+                  'Receives files from end users and writes them to customer-uploads-prod',
+              },
+            ],
+          },
+          {
             id: 'res-aws-9',
             name: 'lambda-us-east-1-upload-processor',
             type: 'Serverless',
             assetTypeLabel: 'AWS::Lambda::Function',
             createdAt: '2024-02-21',
-            tags: ['', 'service:uploads'],
+            tags: ['app:supplier-integration', 'service:uploads'],
             account: 'AWS production account',
             detailsLabel: 'View details',
             detailRows: [
@@ -253,7 +276,7 @@ export const seedChallenges: ChallengeDefinition[] = [
             type: 'Identity',
             assetTypeLabel: 'AWS::IAM::Role',
             createdAt: '2024-02-21',
-            tags: ['owner:application-team'],
+            tags: [],
             account: 'AWS production account',
             detailsLabel: 'View details',
             detailRows: [
@@ -268,7 +291,7 @@ export const seedChallenges: ChallengeDefinition[] = [
             type: 'Storage',
             assetTypeLabel: 'AWS::S3::Bucket',
             createdAt: '2024-02-21',
-            tags: ['owner:application-team', 'data:customer-upload'],
+            tags: ['data:customer-upload'],
             account: 'AWS production account',
             detailsLabel: 'View details',
             detailRows: [
@@ -284,9 +307,50 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'Encryption', value: 'SSE-S3 enabled' },
             ],
           },
+          {
+            id: 'res-aws-11a',
+            name: 'upload-jobs-prod',
+            type: 'Database',
+            assetTypeLabel: 'AWS::DynamoDB::Table',
+            createdAt: '2024-02-20',
+            tags: ['data:job-metadata'],
+            account: 'AWS production account',
+            detailsLabel: 'View details',
+            detailRows: [
+              { field: 'Primary Key', value: 'jobId' },
+              { field: 'Encryption', value: 'AWS owned key' },
+              {
+                field: 'Observed Usage',
+                value: 'Stores upload processing job state',
+              },
+            ],
+          },
+          {
+            id: 'res-aws-11b',
+            name: 'upload-processor/api-credentials',
+            type: 'Identity',
+            assetTypeLabel: 'AWS::SecretsManager::Secret',
+            createdAt: '2024-02-20',
+            tags: ['owner:application-team', 'purpose:third-party-api'],
+            account: 'AWS production account',
+            detailsLabel: 'View details',
+            detailRows: [
+              { field: 'Rotation Enabled', value: 'No' },
+              {
+                field: 'Observed Usage',
+                value: 'Read by the upload processing Lambda at runtime',
+              },
+              { field: 'KMS Key', value: 'aws/secretsmanager' },
+            ],
+          },
         ],
         securityLesson:
           'Execution-role scope matters as much as network exposure. Event-driven compute that handles user-supplied content should still run with least privilege, because any code flaw, malicious payload, or misconfiguration inherits the full permissions of the role.',
+        ownerOptions: [
+          'Application Team',
+          'Cloud Platform Team',
+          'Security Team',
+        ],
         answer: {
           action: 'fix',
           ownerTeam: 'Application Team',
@@ -389,53 +453,23 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'Managed Identity', value: 'System-assigned enabled' },
               { field: 'Runtime', value: '.NET 8 isolated' },
               {
-                field: 'Configuration Read Access',
-                value: 'Secrets visible through app settings API',
-              },
-            ],
-          },
-          {
-            id: 'res-az-2',
-            name: 'AzureWebJobsStorage',
-            type: 'Storage',
-            assetTypeLabel: 'Function App Setting',
-            createdAt: '2024-05-18',
-            tags: ['classification:secret'],
-            account: 'Azure production subscription',
-            detailsLabel: 'View details',
-            detailRows: [
-              { field: 'Setting Type', value: 'Application setting' },
-              {
-                field: 'Value Pattern',
+                field: 'App Setting: AzureWebJobsStorage',
                 value: 'Storage account connection string',
               },
               {
-                field: 'Current Storage',
-                value: 'Plaintext in Function App configuration',
-              },
-            ],
-          },
-          {
-            id: 'res-az-3',
-            name: 'DocumentAiApiKey',
-            type: 'Identity',
-            assetTypeLabel: 'Function App Setting',
-            createdAt: '2024-05-18',
-            tags: ['classification:secret'],
-            account: 'Azure production subscription',
-            detailsLabel: 'View details',
-            detailRows: [
-              { field: 'Setting Type', value: 'Application setting' },
-              { field: 'Value Pattern', value: 'External API secret' },
-              {
-                field: 'Current Storage',
-                value: 'Plaintext in Function App configuration',
+                field: 'App Setting: DocumentAiApiKey',
+                value: 'f0b2a300-5e29-4977-844f-754f54b06dc4',
               },
             ],
           },
         ],
         securityLesson:
           'Secrets should not live directly in Function App environment variables when the platform exposes those settings through control-plane read access. Azure Key Vault references are a straightforward improvement because the app can keep using settings while gaining centralized access control, audit history, and cleaner rotation.',
+        ownerOptions: [
+          'Application Team',
+          'Cloud Platform Team',
+          'Security Team',
+        ],
         answer: {
           action: 'fix',
           ownerTeam: 'Application Team',
@@ -447,9 +481,9 @@ export const seedChallenges: ChallengeDefinition[] = [
         title: 'Public Kubernetes Dashboard with Exposed Cloud Credentials',
         description:
           'Ensure administrative Kubernetes interfaces are not exposed broadly and that cloud credentials are not stored directly in workload configuration. Administrative surfaces and reusable credentials should be restricted according to least-privilege and management-plane hardening guidance.',
-        severityLabel: 'critical',
+        severityLabel: 'high',
         sla: {
-          status: 'overdue',
+          status: 'due_soon',
           days: 12,
         },
         remediation:
@@ -526,6 +560,11 @@ export const seedChallenges: ChallengeDefinition[] = [
         ],
         securityLesson:
           'Administrative interfaces exposed to the internet can collapse multiple layers of trust at once. If an attacker can browse cluster resources and inspect workload configuration, static cloud credentials inside pods quickly turn a Kubernetes exposure into broader cloud-account abuse.',
+        ownerOptions: [
+          'Cloud Platform Team',
+          'Application Team',
+          'Security Team',
+        ],
         answer: {
           action: 'fix',
           ownerTeam: 'Cloud Platform Team',
@@ -692,21 +731,33 @@ export const seedChallenges: ChallengeDefinition[] = [
           },
           {
             id: 'res-aws-17',
-            name: 'edge-app',
-            type: 'Serverless',
-            assetTypeLabel: 'Web Application',
+            name: 'edge-app-repo',
+            type: 'CodeRepository',
+            assetTypeLabel: 'Git Repository',
             createdAt: '2024-01-11',
             tags: ['owner:application-team'],
             account: 'AWS production account',
             detailsLabel: 'View details',
             detailRows: [
               {
-                field: 'User Input Path',
-                value: 'URL fetch / proxy endpoint present',
+                field: 'Language',
+                value: 'Node.js',
               },
               {
-                field: 'Attack Primitive',
-                value: 'SSRF can reach instance metadata endpoint',
+                field: 'Open SAST Findings',
+                value: '3',
+              },
+              {
+                field: 'SAST Finding 1',
+                value: 'HTTP request might enable SSRF attack',
+              },
+              {
+                field: 'SAST Finding 2',
+                value: 'Unsanitized redirect target from request parameter',
+              },
+              {
+                field: 'SAST Finding 3',
+                value: 'User-controlled header forwarded to outbound request',
               },
             ],
           },
@@ -745,6 +796,7 @@ export const seedChallenges: ChallengeDefinition[] = [
         ],
         securityLesson:
           'IMDSv1 by itself is a weak signal, but it becomes a serious exposure when paired with an SSRF-capable application and an over-permissioned instance profile. The real attack path is application request forgery to metadata, metadata to temporary AWS credentials, and credentials to S3 data access.',
+        ownerOptions: ['Cloud Platform Team', 'Application Team'],
         answer: {
           action: 'fix',
           ownerTeam: 'Cloud Platform Team',

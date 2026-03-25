@@ -13,6 +13,10 @@ import type {
   UpsertChallengeInput,
   UpsertScenarioInput,
 } from '@workshop/shared';
+import {
+  fallbackIgnoreFeedbackOptions as defaultIgnoreFeedbackOptions,
+  fallbackSnoozeReasonOptions as defaultSnoozeReasonOptions,
+} from '@workshop/shared';
 import crypto from 'node:crypto';
 
 import { sanitizeName } from '../../lib/http.js';
@@ -144,17 +148,25 @@ export class InMemoryRepository implements Repository {
         throw new Error('Snooze reason is required');
       }
 
-      if (!(scenario.snoozeReasonOptions ?? []).includes(input.snoozeReason)) {
+      const snoozeReasonOptions = scenario.snoozeReasonOptions ?? [
+        ...defaultSnoozeReasonOptions,
+      ];
+
+      if (!snoozeReasonOptions.includes(input.snoozeReason)) {
         throw new Error('Snooze reason is invalid');
       }
     }
 
-    if (input.action === 'ignore' && scenario.answer.action === 'ignore') {
+    if (input.action === 'ignore') {
       if (!input.ignoreFeedback) {
         throw new Error('Ignore feedback is required');
       }
 
-      if (!scenario.ignoreFeedbackOptions.includes(input.ignoreFeedback)) {
+      const ignoreFeedbackOptions = scenario.ignoreFeedbackOptions.length
+        ? scenario.ignoreFeedbackOptions
+        : [...defaultIgnoreFeedbackOptions];
+
+      if (!ignoreFeedbackOptions.includes(input.ignoreFeedback)) {
         throw new Error('Ignore feedback option is invalid');
       }
     }

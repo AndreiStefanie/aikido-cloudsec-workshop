@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type TeamType, teams } from '@workshop/shared';
+import type { TeamType } from '@workshop/shared';
 import type { ScenarioDefinition, UpsertScenarioInput } from '@workshop/shared';
 import { reactive, watch } from 'vue';
 
@@ -32,6 +32,7 @@ const form = reactive({
   diagramAlt: '',
   diagramTitle: '',
   resourcesJson: '[]',
+  ownerOptionsText: '',
   snoozeReasonOptionsText: '',
   ignoreFeedbackOptionsText: '',
   answerAction: 'fix' as UpsertScenarioInput['answer']['action'],
@@ -57,6 +58,7 @@ watch(
     form.diagramAlt = value?.diagram?.alt ?? '';
     form.diagramTitle = value?.diagram?.title ?? '';
     form.resourcesJson = JSON.stringify(value?.resources ?? [], null, 2);
+    form.ownerOptionsText = (value?.ownerOptions ?? []).join('\n');
     form.snoozeReasonOptionsText = (value?.snoozeReasonOptions ?? []).join(
       '\n'
     );
@@ -76,6 +78,10 @@ watch(
 function submit() {
   try {
     const resources = JSON.parse(form.resourcesJson);
+    const ownerOptions = form.ownerOptionsText
+      .split('\n')
+      .map(option => option.trim())
+      .filter(Boolean) as TeamType[];
     const snoozeReasonOptions = form.snoozeReasonOptionsText
       .split('\n')
       .map(option => option.trim())
@@ -93,6 +99,11 @@ function submit() {
 
     if (form.answerAction === 'ignore' && ignoreFeedbackOptions.length !== 3) {
       formError.message = 'Provide exactly 3 ignore feedback options.';
+      return;
+    }
+
+    if (form.answerAction === 'fix' && ownerOptions.length < 1) {
+      formError.message = 'Provide at least 1 owner option.';
       return;
     }
 
@@ -131,6 +142,7 @@ function submit() {
             }
           : undefined,
         resources,
+        ownerOptions: form.answerAction === 'fix' ? ownerOptions : [],
         snoozeReasonOptions:
           form.answerAction === 'snooze' ? snoozeReasonOptions : [],
         ignoreFeedbackOptions:
@@ -276,6 +288,15 @@ function submit() {
           required
         />
       </label>
+      <label v-if="form.answerAction === 'fix'" class="block md:col-span-2">
+        <span class="mb-2 block text-sm font-semibold">Owner options</span>
+        <textarea
+          v-model="form.ownerOptionsText"
+          rows="4"
+          class="w-full rounded-2xl border-slate-200 px-4 py-3"
+          placeholder="One option per line"
+        />
+      </label>
       <label v-if="form.answerAction === 'snooze'" class="block md:col-span-2">
         <span class="mb-2 block text-sm font-semibold">
           Snooze reason options
@@ -316,7 +337,14 @@ function submit() {
           v-model="form.answerOwner"
           class="w-full rounded-2xl border-slate-200 px-4 py-3"
         >
-          <option v-for="team in teams" :key="team" :value="team">
+          <option
+            v-for="team in form.ownerOptionsText
+              .split('\n')
+              .map(option => option.trim())
+              .filter(Boolean)"
+            :key="team"
+            :value="team"
+          >
             {{ team }}
           </option>
         </select>
