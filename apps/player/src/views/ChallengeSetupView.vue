@@ -167,36 +167,33 @@ async function startChallenge() {
           <div class="surface-subtle p-4 sm:p-5">
             <div class="pill pill-primary">Scenario 10</div>
             <div class="mt-3 text-lg font-semibold leading-snug text-white">
-              IMDSv1 on an internet-facing EC2 workload
+              EC2 instance with IMDSv1 enabled
             </div>
             <p class="mt-2 text-sm leading-6 text-mist">
-              Decide how urgently to respond when an internet-facing EC2
-              application allows SSRF-style request forgery, still permits
-              IMDSv1, and the attached role can read sensitive S3 data.
+              The cloud is all about workloads having identities and talking to
+              each other, but can this turn into a lateral movement risk? We
+              should enforce IMDSv2, right?
             </p>
           </div>
           <div class="surface-subtle p-4 sm:p-5">
             <div class="pill pill-primary">Scenario 11</div>
             <div class="mt-3 text-lg font-semibold leading-snug text-white">
-              Public EBS snapshot with active downstream dependencies
+              Public EBS snapshot
             </div>
             <p class="mt-2 text-sm leading-6 text-mist">
-              Decide whether a publicly shared EBS snapshot should be fixed
-              immediately, or whether the right call is to first understand who
-              still depends on that sharing model and schedule the migration
-              safely.
+              People can create instances based on your snapshot, so what? Well,
+              do you know what's inside the snapshot
             </p>
           </div>
           <div class="surface-subtle p-4 sm:p-5">
             <div class="pill pill-primary">Scenario 12</div>
             <div class="mt-3 text-lg font-semibold leading-snug text-white">
-              Broad S3 access mitigated by restricted KMS decrypt
+              Effective S3 access
             </div>
             <p class="mt-2 text-sm leading-6 text-mist">
-              Decide whether a broadly readable S3 bucket is an urgent incident,
-              or whether SSE-KMS plus tightly scoped decrypt permissions lower
-              the immediate risk enough to schedule the cleanup rather than
-              treating it like open plaintext data.
+              The bucket access controls are critical for sure, but is the
+              effective access to data only about those? Encryption can be more
+              than just a compliance checkbox.
             </p>
           </div>
         </div>

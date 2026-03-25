@@ -191,7 +191,7 @@ onBeforeUnmount(() => {
                   {{ resource.createdAt ?? '—' }}
                 </td>
                 <td class="px-4 py-3 text-mist">
-                  {{ resource.account ?? resource.environment }}
+                  {{ resource.account ?? '—' }}
                 </td>
                 <td class="px-4 py-3">
                   <button

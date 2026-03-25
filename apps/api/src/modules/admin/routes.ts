@@ -39,10 +39,6 @@ const resourceSchema = z.object({
       })
     )
     .optional(),
-  environment: z.string().min(1),
-  ownerHints: z.array(z.enum(teams)).min(1),
-  exposure: z.enum(['public', 'internal', 'restricted']),
-  notes: z.string().optional(),
 });
 
 const scenarioSchema = z

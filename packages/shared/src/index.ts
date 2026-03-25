@@ -28,10 +28,6 @@ export interface ResourceContext {
   account?: string;
   detailsLabel?: string;
   detailRows?: ScenarioDetailRow[];
-  environment: string;
-  ownerHints: string[];
-  exposure: 'public' | 'internal' | 'restricted';
-  notes?: string;
 }
 
 export interface ScenarioDetailRow {

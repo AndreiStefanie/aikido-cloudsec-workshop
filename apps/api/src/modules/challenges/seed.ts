@@ -48,10 +48,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                 value: 'AmazonS3FullAccess, AmazonRDSFullAccess',
               },
             ],
-            environment: 'development',
-            ownerHints: ['DevOps Team'],
-            exposure: 'restricted',
-            notes: 'IAM user with access key never used',
           },
           {
             id: 'res-aws-2',
@@ -61,10 +57,6 @@ export const seedChallenges: ChallengeDefinition[] = [
             createdAt: 'AWS Managed',
             account: 'AWS development account',
             detailsLabel: 'View details',
-            environment: 'development',
-            ownerHints: ['DevOps Team'],
-            exposure: 'restricted',
-            notes: 'Attached managed policy',
           },
           {
             id: 'res-aws-3',
@@ -74,10 +66,6 @@ export const seedChallenges: ChallengeDefinition[] = [
             createdAt: 'AWS Managed',
             account: 'AWS development account',
             detailsLabel: 'View details',
-            environment: 'development',
-            ownerHints: ['DevOps Team'],
-            exposure: 'restricted',
-            notes: 'Attached managed policy',
           },
         ],
         securityLesson:
@@ -126,10 +114,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'High Vulnerabilities', value: '23' },
               { field: 'Patch Age', value: '11 months' },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'internal',
-            notes: 'Shared administrative access host',
           },
           {
             id: 'res-aws-5',
@@ -144,10 +128,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'Inbound TCP 22', value: '50.236.77.120/32' },
               { field: 'Inbound TCP 3389', value: '50.236.77.120/32' },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'internal',
-            notes: 'Restricts admin access path',
           },
           {
             id: 'res-aws-6',
@@ -158,10 +138,6 @@ export const seedChallenges: ChallengeDefinition[] = [
             tags: ['owner:data-team'],
             account: 'AWS production account',
             detailsLabel: 'View details',
-            environment: 'production',
-            ownerHints: ['Application Team'],
-            exposure: 'restricted',
-            notes: 'Internal production database reachable from admin path',
           },
         ],
         securityLesson:
@@ -180,16 +156,16 @@ export const seedChallenges: ChallengeDefinition[] = [
       {
         id: 'scn-aws-internal-vm-openssh-cves',
         order: 3,
-        title: 'OpenSSH Package Vulnerabilities on Internal Compute Asset',
+        title: 'EC2 Instance with OpenSSH CVEs',
         description:
-          'The vulnerability assessment solution on your virtual machine reported OpenSSH package vulnerabilities. The affected host is not internet reachable based on the currently attached network controls.',
+          'The vulnerability assessment solution on your virtual machine reported OpenSSH package vulnerabilities. Installed packages with known vulnerabilities should be reviewed and updated in line with the organization remediation policy.',
         severityLabel: 'medium',
         sla: {
           status: 'due_soon',
           days: 14,
         },
         remediation:
-          'If this finding class is expected to remain non-exploitable when no public attack path exists, update the detection logic to automatically suppress or ignore matching cases. If exposure changes later, the issue should become actionable again.',
+          'Upgrade the affected OpenSSH packages to a version that no longer contains the reported vulnerabilities. If the packages are not required for the workload, remove them entirely and confirm the service still operates as expected after the change.',
         ignoreFeedbackOptions: [
           'Automatically ignore vulnerabilities when the affected service is reachable only from private CIDR ranges and the host has no public IP.',
           'Automatically ignore all vulnerabilities on private instances, regardless of which service is affected.',
@@ -211,10 +187,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'High Vulnerabilities', value: '2' },
               { field: 'Public IP', value: 'None' },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'internal',
-            notes: 'Private operations runner in a restricted subnet',
           },
           {
             id: 'res-aws-8',
@@ -225,19 +197,11 @@ export const seedChallenges: ChallengeDefinition[] = [
             tags: ['owner:platform-team'],
             account: 'AWS production account',
             detailsLabel: 'View details',
-            detailRows: [
-              { field: 'Inbound TCP 22', value: '10.40.0.0/16' },
-              { field: 'Inbound TCP 443', value: 'None' },
-              { field: 'Inbound TCP 3389', value: 'None' },
-            ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'internal',
-            notes: 'Allows access only from internal network ranges',
+            detailRows: [{ field: 'Inbound TCP 80', value: '172.31.0.0/20' }],
           },
         ],
         securityLesson:
-          'Some findings should be ignored when the required attack path does not exist. In those cases, the better long-term fix is often improving the tool so non-actionable issues are suppressed automatically.',
+          'Some findings can be ignored when the required attack path does not exist. In those cases, the better long-term fix is often improving the tool so non-actionable issues are suppressed automatically.',
         answer: {
           action: 'ignore',
           ignoreFeedback:
@@ -247,16 +211,16 @@ export const seedChallenges: ChallengeDefinition[] = [
       {
         id: 'scn-aws-lambda-admin-role',
         order: 4,
-        title: 'Serverless Function with Overly Broad Execution Role',
+        title: 'Lambda Function with Overly Permissive Execution Role',
         description:
-          'Ensure AWS Lambda execution roles do not grant full administrative access. Serverless workloads should run with least privilege and should not use broad AWS managed policies such as AdministratorAccess.',
+          'Ensure serverless execution roles do not grant full administrative access. Workload identities should follow least privilege and should not use broad administrative policies when more specific permissions are sufficient.',
         severityLabel: 'high',
         sla: {
           status: 'overdue',
           days: 32,
         },
         remediation:
-          'Review the Lambda execution role and remove full administrative permissions. Replace broad policies with a least-privilege policy that grants only the actions required for the function runtime, event source, logging, and downstream integrations.',
+          'Review the execution role attached to the serverless function and remove broad administrative permissions. Replace them with a least-privilege policy that grants only the actions required for the function runtime, logging, event handling, and downstream service access.',
         ignoreFeedbackOptions: [
           'Automatically ignore Lambda permission findings when the function is triggered only by S3 uploads.',
           'Automatically ignore AdministratorAccess findings when the function is used for internal file processing.',
@@ -265,11 +229,11 @@ export const seedChallenges: ChallengeDefinition[] = [
         resources: [
           {
             id: 'res-aws-9',
-            name: 'upload-processor',
+            name: 'lambda-us-east-1-upload-processor',
             type: 'Serverless',
             assetTypeLabel: 'AWS::Lambda::Function',
             createdAt: '2024-02-21',
-            tags: ['owner:application-team', 'service:uploads'],
+            tags: ['', 'service:uploads'],
             account: 'AWS production account',
             detailsLabel: 'View details',
             detailRows: [
@@ -282,10 +246,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'Execution Role', value: 'upload-processor-role' },
               { field: 'Timeout', value: '60 seconds' },
             ],
-            environment: 'production',
-            ownerHints: ['Application Team'],
-            exposure: 'internal',
-            notes: 'Processes newly uploaded customer files',
           },
           {
             id: 'res-aws-10',
@@ -301,10 +261,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'Attached Policies', value: 'AdministratorAccess' },
               { field: 'Inline Policies', value: 'None' },
             ],
-            environment: 'production',
-            ownerHints: ['Application Team'],
-            exposure: 'restricted',
-            notes: 'Execution role used by the upload processing Lambda',
           },
           {
             id: 'res-aws-11',
@@ -327,10 +283,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'Public Access', value: 'Blocked' },
               { field: 'Encryption', value: 'SSE-S3 enabled' },
             ],
-            environment: 'production',
-            ownerHints: ['Application Team'],
-            exposure: 'restricted',
-            notes: 'Upload bucket wired to invoke the Lambda function',
           },
         ],
         securityLesson:
@@ -345,14 +297,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         order: 5,
         title: 'IAM Role Trusted by an External AWS Account',
         description:
-          'Ensure IAM roles do not trust external AWS accounts unless cross-account access is explicitly required and approved. Trust relationships with accounts outside the organization can permit external principals to assume internal roles.',
+          'Ensure IAM roles do not trust external AWS accounts unless cross-account access is explicitly required and approved. Trust relationships should be limited to the principals needed for the documented use case.',
         severityLabel: 'medium',
         sla: {
           status: 'due_soon',
           days: 18,
         },
         remediation:
-          'Review the role trust policy and remove external principals that are not required. If cross-account access is legitimate, scope the trust appropriately and document the approved use case so the control can be evaluated with the correct context.',
+          'Review the role trust policy and remove cross-account principals that are not required. Where external access is approved, scope the trust appropriately and ensure the integration is documented so the control can be assessed with the correct business context.',
         ignoreFeedbackOptions: [
           'Automatically ignore approved third-party cross-account IAM roles when the trusted external account is tied to a verified security integration and the role usage matches that integration.',
           'Automatically ignore all IAM roles that trust accounts outside of the organization whenever the role is tagged as owned by Security.',
@@ -377,10 +329,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'External ID Required', value: 'Yes' },
               { field: 'Last Assumed', value: '2 hours ago' },
             ],
-            environment: 'production',
-            ownerHints: ['Security Team'],
-            exposure: 'restricted',
-            notes: 'Vendor integration role used for CNAPP visibility',
           },
           {
             id: 'res-aws-13',
@@ -398,10 +346,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               },
               { field: 'Write Actions', value: 'None' },
             ],
-            environment: 'production',
-            ownerHints: ['Security Team'],
-            exposure: 'restricted',
-            notes: 'Read-only policy attached to the integration role',
           },
         ],
         securityLesson:
@@ -417,14 +361,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         order: 6,
         title: 'Secrets Detected in Azure Functions App Settings',
         description:
-          'Ensure application secrets are not stored directly in Azure Function App settings. Sensitive values placed in environment configuration can be exposed through control-plane access to the application resource.',
+          'Ensure application secrets are not stored directly in Azure Function App settings. Sensitive values should be managed through a dedicated secret-management mechanism rather than embedded in resource configuration.',
         severityLabel: 'high',
         sla: {
           status: 'overdue',
           days: 27,
         },
         remediation:
-          'Move plaintext secrets out of Function App settings and store them in a dedicated secret-management service. Where supported, replace inline values with managed secret references so the application can resolve the secret at runtime without embedding it directly in resource configuration.',
+          'Move plaintext secrets out of Function App settings and store them in a dedicated secret-management service. Replace inline values with managed secret references where supported so the application can resolve them at runtime without embedding them directly in configuration.',
         ignoreFeedbackOptions: [
           'Automatically ignore secrets in Azure Functions app settings when the Function App uses a system-assigned managed identity.',
           'Automatically ignore app-setting secrets when the resource is tagged as owned by the platform team.',
@@ -449,10 +393,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                 value: 'Secrets visible through app settings API',
               },
             ],
-            environment: 'production',
-            ownerHints: ['Application Team'],
-            exposure: 'restricted',
-            notes: 'Processes uploaded invoice documents',
           },
           {
             id: 'res-az-2',
@@ -474,11 +414,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                 value: 'Plaintext in Function App configuration',
               },
             ],
-            environment: 'production',
-            ownerHints: ['Application Team'],
-            exposure: 'restricted',
-            notes:
-              'Sensitive connection string stored directly in app settings',
           },
           {
             id: 'res-az-3',
@@ -497,10 +432,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                 value: 'Plaintext in Function App configuration',
               },
             ],
-            environment: 'production',
-            ownerHints: ['Application Team'],
-            exposure: 'restricted',
-            notes: 'API key retrievable through resource configuration access',
           },
         ],
         securityLesson:
@@ -515,14 +446,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         order: 7,
         title: 'Public Kubernetes Dashboard with Exposed Cloud Credentials',
         description:
-          'Ensure administrative Kubernetes interfaces are not exposed to the public internet and that cloud credentials are not stored directly in workload configuration. Public management surfaces and reusable credentials can materially expand the blast radius of a cluster exposure.',
+          'Ensure administrative Kubernetes interfaces are not exposed broadly and that cloud credentials are not stored directly in workload configuration. Administrative surfaces and reusable credentials should be restricted according to least-privilege and management-plane hardening guidance.',
         severityLabel: 'critical',
         sla: {
           status: 'overdue',
           days: 12,
         },
         remediation:
-          'Restrict access to administrative Kubernetes interfaces and remove reusable cloud credentials from workload configuration. Replace static secrets with workload-scoped identity where possible and review any exposed credentials for rotation and downstream impact.',
+          'Restrict access to administrative Kubernetes interfaces and remove reusable cloud credentials from workload configuration. Replace static credentials with workload-scoped identity where possible and rotate any credentials that may have been exposed through the cluster management surface.',
         ignoreFeedbackOptions: [
           'Automatically ignore public Kubernetes dashboard findings when the dashboard belongs to a non-production cluster.',
           'Automatically ignore cloud credential exposure findings when the leaked AWS key only has access to S3.',
@@ -546,10 +477,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                 value: 'https://dashboard.shared-eks.example.com',
               },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'public',
-            notes: 'Administrative Kubernetes interface exposed publicly',
           },
           {
             id: 'res-eks-2',
@@ -563,15 +490,20 @@ export const seedChallenges: ChallengeDefinition[] = [
             detailRows: [
               { field: 'Namespace', value: 'ops' },
               {
-                field: 'Exposed AWS Credential',
-                value: 'AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY',
+                field: 'Env: AWS_ACCESS_KEY_ID',
+                value: 'AKIAIOSFODNN7EXAMPLE',
+              },
+              {
+                field: 'Env: AWS_SECRET_ACCESS_KEY',
+                value: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+              },
+              { field: 'Env: AWS_DEFAULT_REGION', value: 'us-west-2' },
+              {
+                field: 'Container',
+                value: 'build-runner',
               },
               { field: 'Runtime Status', value: 'Running' },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'internal',
-            notes: 'Pod configuration exposes reusable AWS credentials',
           },
           {
             id: 'res-eks-3',
@@ -590,10 +522,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                 value: 'Observed from pod environment',
               },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'restricted',
-            notes: 'Static AWS key available to anyone who can inspect the pod',
           },
         ],
         securityLesson:
@@ -609,14 +537,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         title:
           "Ensure 'Public Network Access' Is Disabled for Storage Accounts",
         description:
-          'This Azure Storage account still shows `Public Network Access` as enabled. In isolation, that setting is often treated as a high-signal control because it allows the resource to accept public traffic unless other restrictions apply.',
+          'Ensure public network access is disabled for storage accounts unless public access is explicitly required. Storage services should not expose public entry points when a more restrictive network configuration is available.',
         severityLabel: 'medium',
         sla: {
           status: 'due_soon',
           days: 16,
         },
         remediation:
-          'Disable public network access for storage accounts unless an approved compensating control already enforces the effective network boundary. Where newer top-level controls are in place, validate whether the finding still represents real exposure.',
+          'Disable public network access for the storage account unless the service is explicitly intended to accept public traffic. Review the effective network configuration and align the account with the expected access model.',
         ignoreFeedbackOptions: [
           'Automatically ignore storage accounts with public network access enabled when the account is associated with an enforced Azure Network Security Perimeter that already governs inbound and outbound public access.',
           'Automatically ignore this finding whenever the storage account also has a private endpoint configured.',
@@ -640,11 +568,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                 value: 'Not relied on for primary enforcement',
               },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'restricted',
-            notes:
-              'Storage account already onboarded to a perimeter-based network control',
           },
           {
             id: 'res-az-6',
@@ -660,11 +583,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'Inbound Public Access', value: 'Explicit rules only' },
               { field: 'Outbound Public Access', value: 'Explicit rules only' },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'restricted',
-            notes:
-              'Perimeter rules override the account firewall and act as the top-level network gatekeeper',
           },
         ],
         securityLesson:
@@ -687,7 +605,7 @@ export const seedChallenges: ChallengeDefinition[] = [
           days: 20,
         },
         remediation:
-          'Enable access logging for the load balancer using a supported logging destination. If logging is already configured through an alternate supported integration path, validate whether the finding reflects a detection gap rather than a true control failure.',
+          'Enable access logging for the load balancer using a supported logging destination and verify that logs are retained according to the organization monitoring and audit requirements.',
         ignoreFeedbackOptions: [
           'Automatically ignore NLB access-log findings when access logs are already configured through the newer CloudWatch Logs integration, even if the legacy check path does not recognize that destination yet.',
           'Automatically ignore NLB access-log findings whenever the load balancer belongs to a non-internet-facing service.',
@@ -709,10 +627,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'CloudWatch Logs Delivery', value: 'Enabled' },
               { field: 'Legacy S3 Access Logs Check', value: 'Not configured' },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'public',
-            notes: 'NLB uses the newer CloudWatch access-log delivery path',
           },
           {
             id: 'res-aws-15',
@@ -728,10 +642,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'Delivery Status', value: 'Active' },
               { field: 'Retention', value: '30 days' },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'restricted',
-            notes: 'CloudWatch Logs destination for NLB access logs',
           },
         ],
         securityLesson:
@@ -745,16 +655,16 @@ export const seedChallenges: ChallengeDefinition[] = [
       {
         id: 'scn-aws-ec2-imdsv1-ssrf-exfiltration-path',
         order: 10,
-        title: 'EC2 Instance Still Allows IMDSv1',
+        title: 'EC2 Instance Allows IMDSv1',
         description:
-          'Ensure EC2 instances require Instance Metadata Service Version 2 (IMDSv2). IMDSv1 exposes metadata without the session-oriented protections provided by IMDSv2 and can increase the impact of application-layer request-forgery flaws.',
+          'Ensure EC2 instances require Instance Metadata Service Version 2 (IMDSv2). IMDSv1 does not provide the same request protections as IMDSv2 and should be disabled where possible.',
         severityLabel: 'critical',
         sla: {
-          status: 'overdue',
-          days: 9,
+          status: 'due_soon',
+          days: 3,
         },
         remediation:
-          'Require IMDSv2 on the EC2 instance and review the attached instance profile permissions. Where possible, reduce the role scope and confirm application components cannot abuse metadata access paths.',
+          'Update the instance metadata configuration to require IMDSv2 and disable IMDSv1 access. Review the workload identity configuration and align metadata access with the organization hardening standard.',
         ignoreFeedbackOptions: [
           'Automatically ignore IMDSv1 findings when the EC2 instance does not have a public IP.',
           'Automatically ignore IMDSv1 findings whenever the attached IAM role is used only by a web application firewall.',
@@ -767,7 +677,7 @@ export const seedChallenges: ChallengeDefinition[] = [
             type: 'VirtualMachine',
             assetTypeLabel: 'AWS::EC2::Instance',
             createdAt: '2024-01-11',
-            tags: ['owner:platform-team', 'service:edge-app'],
+            tags: ['repo:edge', 'service:edge-app'],
             account: 'AWS production account',
             detailsLabel: 'View details',
             detailRows: [
@@ -779,11 +689,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                 value: 'Reverse proxy / application endpoint',
               },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'public',
-            notes:
-              'Internet-facing workload where SSRF materially changes the risk',
           },
           {
             id: 'res-aws-17',
@@ -804,10 +709,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                 value: 'SSRF can reach instance metadata endpoint',
               },
             ],
-            environment: 'production',
-            ownerHints: ['Application Team'],
-            exposure: 'public',
-            notes: 'Application behavior makes metadata abuse plausible',
           },
           {
             id: 'res-aws-18',
@@ -826,11 +727,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               },
               { field: 'Scope', value: 'customer-data-* buckets' },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'restricted',
-            notes:
-              'Instance profile permissions make S3 data access possible after credential theft',
           },
           {
             id: 'res-aws-19',
@@ -845,11 +741,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'Accessible From Role', value: 'edge-app-role' },
               { field: 'Stored Data', value: 'Archived customer documents' },
             ],
-            environment: 'production',
-            ownerHints: ['Data Team', 'Cloud Platform Team'],
-            exposure: 'restricted',
-            notes:
-              'Sensitive bucket reachable with the instance profile credentials',
           },
         ],
         securityLesson:
@@ -871,7 +762,7 @@ export const seedChallenges: ChallengeDefinition[] = [
           days: 11,
         },
         remediation:
-          'Remove public snapshot sharing and replace it with explicit account-level sharing where required. Before changing the sharing model, confirm whether any active workflows or downstream consumers still depend on the current distribution path.',
+          'Remove public snapshot sharing and replace it with explicit account-level sharing where required. Review snapshot distribution settings and align access with the intended consumer set.',
         ignoreFeedbackOptions: [
           'Automatically ignore public EBS snapshot findings when the snapshot was created by an approved AMI distribution pipeline.',
           'Automatically ignore public snapshot findings whenever the snapshot is tagged as shared.',
@@ -896,11 +787,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                   'Base image snapshot for partner and internal account distribution',
               },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'public',
-            notes:
-              'Snapshot is publicly shareable and may contain reusable system artifacts',
           },
           {
             id: 'res-aws-21',
@@ -925,11 +811,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                 value: 'Account allowlist migration planned but not complete',
               },
             ],
-            environment: 'production',
-            ownerHints: ['Cloud Platform Team'],
-            exposure: 'restricted',
-            notes:
-              'There is still an active dependency on the current sharing model',
           },
           {
             id: 'res-aws-22',
@@ -951,11 +832,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                   'Image contents still visible to any AWS account while public',
               },
             ],
-            environment: 'production',
-            ownerHints: ['Security Team', 'Cloud Platform Team'],
-            exposure: 'restricted',
-            notes:
-              'Security concern is real, but dependency analysis matters before revoking access',
           },
         ],
         securityLesson:
@@ -976,14 +852,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         order: 12,
         title: 'S3 Bucket Policy Allows Broad Access',
         description:
-          'Ensure S3 bucket policies do not grant broad access to stored data. Bucket policies should allow only the principals that require access for the intended workload.',
+          'Ensure S3 bucket policies do not grant broad access to stored data. Bucket policies should be limited to the principals required for the intended workload and data-access pattern.',
         severityLabel: 'medium',
         sla: {
           status: 'due_soon',
           days: 13,
         },
         remediation:
-          'Review and tighten the bucket policy so read access is limited to the intended principals. Evaluate related encryption and key-management controls to determine whether the current exposure is directly exploitable or partially mitigated by a stronger downstream access gate.',
+          'Review and tighten the bucket policy so read access is limited to the intended principals. Align bucket permissions with the expected authorization model and remove any overly broad bucket-level access.',
         ignoreFeedbackOptions: [
           'Automatically ignore broad S3 bucket access findings when the bucket uses SSE-KMS encryption.',
           'Automatically ignore public bucket policy findings when the bucket has versioning enabled.',
@@ -1004,11 +880,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'Default Encryption', value: 'SSE-KMS' },
               { field: 'Stored Data', value: 'Exported reporting data' },
             ],
-            environment: 'production',
-            ownerHints: ['Data Team'],
-            exposure: 'public',
-            notes:
-              'Bucket access is wider than intended, but object reads still depend on KMS decrypt permissions',
           },
           {
             id: 'res-aws-24',
@@ -1027,11 +898,6 @@ export const seedChallenges: ChallengeDefinition[] = [
               },
               { field: 'Anonymous or wildcard decrypt', value: 'No' },
             ],
-            environment: 'production',
-            ownerHints: ['Data Team'],
-            exposure: 'restricted',
-            notes:
-              'KMS policy materially limits direct object retrieval by unauthorized principals',
           },
           {
             id: 'res-aws-25',
@@ -1052,11 +918,6 @@ export const seedChallenges: ChallengeDefinition[] = [
                 value: 'kms:Decrypt on alias/reports-export-kms',
               },
             ],
-            environment: 'production',
-            ownerHints: ['Application Team'],
-            exposure: 'restricted',
-            notes:
-              'Legitimate readers still work because they also have KMS decrypt',
           },
         ],
         securityLesson:
