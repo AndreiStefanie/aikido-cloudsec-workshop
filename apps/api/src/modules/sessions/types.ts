@@ -46,7 +46,7 @@ export interface ChallengeRecord extends ChallengeDefinition {}
 
 export interface ScoreBreakdown {
   actionScoreDelta: number;
-  ownerScoreDelta: number;
+  secondaryScoreDelta: number;
   streakBonusDelta: number;
   nextStreak: number;
 }

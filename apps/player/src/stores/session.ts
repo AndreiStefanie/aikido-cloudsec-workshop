@@ -149,16 +149,19 @@ export const useSessionStore = defineStore('session', {
             title: currentScenario.title,
             submittedAction: result.submittedAction,
             submittedOwnerTeam: result.submittedOwnerTeam ?? undefined,
-            submittedIgnoreFeedback: result.submittedIgnoreFeedback ?? undefined,
+            submittedSnoozeReason: result.submittedSnoozeReason ?? undefined,
+            submittedIgnoreFeedback:
+              result.submittedIgnoreFeedback ?? undefined,
             correctAction: result.correctAction,
             correctOwnerTeam: result.correctOwnerTeam ?? undefined,
+            correctSnoozeReason: result.correctSnoozeReason ?? undefined,
             correctIgnoreFeedback: result.correctIgnoreFeedback ?? undefined,
             actionScoreDelta: result.actionScoreDelta,
-            ownerScoreDelta: result.ownerScoreDelta,
+            secondaryScoreDelta: result.secondaryScoreDelta,
             streakBonusDelta: result.streakBonusDelta,
             totalDelta:
               result.actionScoreDelta +
-              result.ownerScoreDelta +
+              result.secondaryScoreDelta +
               result.streakBonusDelta,
             securityLesson: result.securityLesson,
           };

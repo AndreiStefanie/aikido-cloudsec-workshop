@@ -42,6 +42,7 @@ export interface ScenarioDetailRow {
 export interface ScenarioAnswer {
   action: ActionType;
   ownerTeam?: TeamType;
+  snoozeReason?: string;
   ignoreFeedback?: string;
 }
 
@@ -67,6 +68,7 @@ export interface ScenarioDefinition {
   diagram?: ScenarioDiagram;
   resources: ResourceContext[];
   securityLesson: string;
+  snoozeReasonOptions?: string[];
   ignoreFeedbackOptions: string[];
   answer: ScenarioAnswer;
 }
@@ -93,12 +95,13 @@ export interface ParticipantSession {
   score: number;
   streak: number;
   correctActions: number;
-  correctOwners: number;
+  correctSecondary: number;
 }
 
 export interface ScenarioDecisionInput {
   action: ActionType;
   ownerTeam?: TeamType | null;
+  snoozeReason?: string;
   ignoreFeedback?: string;
 }
 
@@ -106,17 +109,20 @@ export interface ScenarioDecisionResult {
   scenarioId: string;
   submittedAction: ActionType;
   submittedOwnerTeam?: TeamType | null;
+  submittedSnoozeReason?: string;
   submittedIgnoreFeedback?: string;
   correctAction: ActionType;
   correctOwnerTeam?: TeamType;
+  correctSnoozeReason?: string;
   correctIgnoreFeedback?: string;
   actionScoreDelta: number;
-  ownerScoreDelta: number;
+  secondaryScoreDelta: number;
   streakBonusDelta: number;
   resultingStreak: number;
   totalScore: number;
   isActionCorrect: boolean;
   isOwnerCorrect: boolean;
+  isSnoozeReasonCorrect: boolean;
   isIgnoreFeedbackCorrect: boolean;
   securityLesson: string;
   nextScenarioIndex: number;
@@ -128,12 +134,14 @@ export interface CompletedScenarioReview {
   title: string;
   submittedAction: ActionType;
   submittedOwnerTeam?: TeamType;
+  submittedSnoozeReason?: string;
   submittedIgnoreFeedback?: string;
   correctAction: ActionType;
   correctOwnerTeam?: TeamType;
+  correctSnoozeReason?: string;
   correctIgnoreFeedback?: string;
   actionScoreDelta: number;
-  ownerScoreDelta: number;
+  secondaryScoreDelta: number;
   streakBonusDelta: number;
   totalDelta: number;
   securityLesson: string;
@@ -214,6 +222,7 @@ export interface UpsertScenarioInput {
   diagram?: ScenarioDiagram;
   resources: ResourceContext[];
   securityLesson: string;
+  snoozeReasonOptions?: string[];
   ignoreFeedbackOptions: string[];
   answer: ScenarioAnswer;
 }

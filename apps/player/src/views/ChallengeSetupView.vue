@@ -38,7 +38,9 @@ async function startChallenge() {
         class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
       >
         <WorkshopLockup />
-        <div class="surface-subtle w-full px-4 py-3 text-sm text-mist md:w-auto">
+        <div
+          class="surface-subtle w-full px-4 py-3 text-sm text-mist md:w-auto"
+        >
           <div class="flex items-baseline gap-2">
             <span class="text-[10px] uppercase tracking-[0.18em] text-mist/60">
               Player
@@ -56,7 +58,9 @@ async function startChallenge() {
         >
           Challenge
         </div>
-        <h1 class="mt-2 font-display text-3xl leading-tight text-white sm:text-4xl md:text-5xl">
+        <h1
+          class="mt-2 font-display text-3xl leading-tight text-white sm:text-4xl md:text-5xl"
+        >
           Cloud Village @RSAC 2026
         </h1>
 
@@ -64,7 +68,7 @@ async function startChallenge() {
           <div class="surface-subtle p-4 sm:p-5">
             <div class="pill pill-primary">Scenario 1</div>
             <div class="mt-3 text-lg font-semibold leading-snug text-white">
-              Legacy backup IAM user with unused credentials
+              IAM user created for backup tasks but never used
             </div>
             <p class="mt-2 text-sm leading-6 text-mist sm:text-sm">
               Decide whether an unused IAM user with broad AWS access should be
@@ -74,40 +78,38 @@ async function startChallenge() {
           <div class="surface-subtle p-4 sm:p-5">
             <div class="pill pill-primary">Scenario 2</div>
             <div class="mt-3 text-lg font-semibold leading-snug text-white">
-              Vulnerable bastion host with limited exposure
+              Bastion host with critical CVEs
             </div>
             <p class="mt-2 text-sm leading-6 text-mist">
-              Assess whether severe but internally constrained infrastructure
-              vulnerabilities are urgent, and assign ownership to the right
-              shared platform team.
+              Seeing critical CVEs is alarming, but are they always urgent to
+              fix?
             </p>
           </div>
           <div class="surface-subtle p-4 sm:p-5">
             <div class="pill pill-primary">Scenario 3</div>
             <div class="mt-3 text-lg font-semibold leading-snug text-white">
-              OpenSSH CVEs on a private internal host
+              EC2 instance with vulnerable OpenSSH
             </div>
             <p class="mt-2 text-sm leading-6 text-mist">
-              Decide whether a vulnerability finding with no public attack path
-              should be ignored, and when the right answer is to improve the
-              tooling rather than create another manual workflow.
+              Should all CVEs be treated equally? Or does the environment change
+              their priority?
             </p>
           </div>
           <div class="surface-subtle p-4 sm:p-5">
             <div class="pill pill-primary">Scenario 4</div>
             <div class="mt-3 text-lg font-semibold leading-snug text-white">
-              Lambda function with an overly broad execution role
+              Lambda function with overly permissive execution role
             </div>
             <p class="mt-2 text-sm leading-6 text-mist">
-              Decide whether a file-processing Lambda that runs on S3 uploads
-              should keep account-wide administrator permissions, and route the
-              remediation to the team that owns the workflow.
+              We've seen this before: a Lambda function that must interact with
+              a few AWS services is given admin permissions because it's the
+              easy way to get it working.
             </p>
           </div>
           <div class="surface-subtle p-4 sm:p-5">
             <div class="pill pill-primary">Scenario 5</div>
             <div class="mt-3 text-lg font-semibold leading-snug text-white">
-              External-account trust on an IAM role
+              IAM role allowing access from an external AWS account
             </div>
             <p class="mt-2 text-sm leading-6 text-mist">
               Decide whether a cross-account IAM role trusted by an AWS account
@@ -122,33 +124,32 @@ async function startChallenge() {
               Secrets stored in Azure Functions app settings
             </div>
             <p class="mt-2 text-sm leading-6 text-mist">
-              Decide whether plaintext secrets in Function App environment
-              variables should be remediated immediately, and recognize that
-              Key Vault references are a simple way to improve both security
-              and traceability.
+              At least they are not stored in code, right? Still, cloud
+              providers offer great integrations with their secrets management
+              services.
             </p>
           </div>
           <div class="surface-subtle p-4 sm:p-5">
             <div class="pill pill-primary">Scenario 7</div>
             <div class="mt-3 text-lg font-semibold leading-snug text-white">
-              Public Kubernetes dashboard exposing cloud credentials
+              Public Kubernetes dashboard
             </div>
             <p class="mt-2 text-sm leading-6 text-mist">
-              Decide how urgently to respond when a publicly reachable
-              Kubernetes dashboard allows attackers to inspect workloads and
-              recover reusable AWS credentials from a running pod.
+              Worst case is that attackers see how much CPU your Kubernetes pods
+              use, right? Well, remember those secrets provided as environment
+              variables?
             </p>
           </div>
           <div class="surface-subtle p-4 sm:p-5">
             <div class="pill pill-primary">Scenario 8</div>
             <div class="mt-3 text-lg font-semibold leading-snug text-white">
-              Azure Storage public access finding covered by a perimeter control
+              Azure Storage presumably allowing public network access
             </div>
             <p class="mt-2 text-sm leading-6 text-mist">
-              Decide whether an Azure Storage account with public network access
-              still enabled is actually exposed, or whether an enforced Network
-              Security Perimeter already supersedes the older control and makes
-              the right answer to ignore with better tooling context.
+              Cloud providers constantly evolve their services, and sometimes
+              they introduce higher-level features that are very easy to deploy
+              across multiple resources, but this might not be obvious when
+              starting from the resource itself.
             </p>
           </div>
           <div class="surface-subtle p-4 sm:p-5">

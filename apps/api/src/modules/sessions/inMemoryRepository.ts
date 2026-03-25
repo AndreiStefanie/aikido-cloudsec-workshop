@@ -79,7 +79,7 @@ export class InMemoryRepository implements Repository {
       score: 0,
       streak: 0,
       correctActions: 0,
-      correctOwners: 0,
+      correctSecondary: 0,
       decisions: {},
     };
 
@@ -139,7 +139,17 @@ export class InMemoryRepository implements Repository {
       return null;
     }
 
-    if (input.action === 'ignore') {
+    if (input.action === 'snooze') {
+      if (!input.snoozeReason) {
+        throw new Error('Snooze reason is required');
+      }
+
+      if (!(scenario.snoozeReasonOptions ?? []).includes(input.snoozeReason)) {
+        throw new Error('Snooze reason is invalid');
+      }
+    }
+
+    if (input.action === 'ignore' && scenario.answer.action === 'ignore') {
       if (!input.ignoreFeedback) {
         throw new Error('Ignore feedback is required');
       }
@@ -155,19 +165,23 @@ export class InMemoryRepository implements Repository {
 
     session.score +=
       breakdown.actionScoreDelta +
-      breakdown.ownerScoreDelta +
+      breakdown.secondaryScoreDelta +
       breakdown.streakBonusDelta;
     session.streak = breakdown.nextStreak;
     session.correctActions += input.action === scenario.answer.action ? 1 : 0;
-    session.correctOwners +=
-      input.action === 'ignore'
-        ? input.ignoreFeedback === scenario.answer.ignoreFeedback
+    session.correctSecondary +=
+      input.action === 'snooze'
+        ? input.snoozeReason === scenario.answer.snoozeReason
           ? 1
           : 0
-        : scenario.answer.ownerTeam &&
-            input.ownerTeam === scenario.answer.ownerTeam
-          ? 1
-          : 0;
+        : input.action === 'ignore'
+          ? input.ignoreFeedback === scenario.answer.ignoreFeedback
+            ? 1
+            : 0
+          : scenario.answer.ownerTeam &&
+              input.ownerTeam === scenario.answer.ownerTeam
+            ? 1
+            : 0;
     session.currentScenarioIndex = nextScenarioIndex;
     session.updatedAt = new Date().toISOString();
     if (challengeCompleted) {
@@ -178,20 +192,25 @@ export class InMemoryRepository implements Repository {
       scenarioId: scenario.id,
       submittedAction: input.action,
       submittedOwnerTeam: input.ownerTeam,
+      submittedSnoozeReason: input.snoozeReason,
       submittedIgnoreFeedback: input.ignoreFeedback,
       correctAction: scenario.answer.action,
       correctOwnerTeam: scenario.answer.ownerTeam,
+      correctSnoozeReason: scenario.answer.snoozeReason,
       correctIgnoreFeedback: scenario.answer.ignoreFeedback,
       actionScoreDelta: breakdown.actionScoreDelta,
-      ownerScoreDelta: breakdown.ownerScoreDelta,
+      secondaryScoreDelta: breakdown.secondaryScoreDelta,
       streakBonusDelta: breakdown.streakBonusDelta,
       resultingStreak: session.streak,
       totalScore: session.score,
       isActionCorrect: input.action === scenario.answer.action,
       isOwnerCorrect:
-        input.action !== 'ignore' &&
+        input.action === 'fix' &&
         Boolean(scenario.answer.ownerTeam) &&
         input.ownerTeam === scenario.answer.ownerTeam,
+      isSnoozeReasonCorrect:
+        input.action === 'snooze' &&
+        input.snoozeReason === scenario.answer.snoozeReason,
       isIgnoreFeedbackCorrect:
         input.action === 'ignore' &&
         input.ignoreFeedback === scenario.answer.ignoreFeedback,
@@ -383,16 +402,21 @@ export class InMemoryRepository implements Repository {
               title: scenario.title,
               submittedAction: decision.submittedAction,
               submittedOwnerTeam: decision.submittedOwnerTeam ?? undefined,
-              submittedIgnoreFeedback: decision.submittedIgnoreFeedback ?? undefined,
+              submittedSnoozeReason:
+                decision.submittedSnoozeReason ?? undefined,
+              submittedIgnoreFeedback:
+                decision.submittedIgnoreFeedback ?? undefined,
               correctAction: decision.correctAction,
               correctOwnerTeam: decision.correctOwnerTeam ?? undefined,
-              correctIgnoreFeedback: decision.correctIgnoreFeedback ?? undefined,
+              correctSnoozeReason: decision.correctSnoozeReason ?? undefined,
+              correctIgnoreFeedback:
+                decision.correctIgnoreFeedback ?? undefined,
               actionScoreDelta: decision.actionScoreDelta,
-              ownerScoreDelta: decision.ownerScoreDelta,
+              secondaryScoreDelta: decision.secondaryScoreDelta,
               streakBonusDelta: decision.streakBonusDelta,
               totalDelta:
                 decision.actionScoreDelta +
-                decision.ownerScoreDelta +
+                decision.secondaryScoreDelta +
                 decision.streakBonusDelta,
               securityLesson: decision.securityLesson,
             },

@@ -3,7 +3,9 @@ import type { ScenarioDecisionResult } from '@workshop/shared';
 
 function scoreDelta(result: ScenarioDecisionResult) {
   return (
-    result.actionScoreDelta + result.ownerScoreDelta + result.streakBonusDelta
+    result.actionScoreDelta +
+    result.secondaryScoreDelta +
+    result.streakBonusDelta
   );
 }
 
@@ -44,7 +46,15 @@ function componentTone(delta: number, positiveColor = 'text-mint-100') {
 }
 
 function secondaryLabel(result: ScenarioDecisionResult) {
-  return result.correctAction === 'ignore' ? 'vendor' : 'owner';
+  if (result.correctAction === 'ignore') {
+    return 'vendor';
+  }
+
+  if (result.correctAction === 'snooze') {
+    return 'reason';
+  }
+
+  return 'owner';
 }
 
 defineProps<{
@@ -73,9 +83,13 @@ defineEmits<{ continue: [] }>();
             ? result.isIgnoreFeedbackCorrect
               ? 'pill-success'
               : 'pill-muted'
-            : result.isOwnerCorrect
-              ? 'pill-success'
-              : 'pill-muted'
+            : result.correctAction === 'snooze'
+              ? result.isSnoozeReasonCorrect
+                ? 'pill-success'
+                : 'pill-muted'
+              : result.isOwnerCorrect
+                ? 'pill-success'
+                : 'pill-muted'
         "
       >
         {{
@@ -83,9 +97,13 @@ defineEmits<{ continue: [] }>();
             ? result.isIgnoreFeedbackCorrect
               ? 'Vendor feedback correct'
               : 'Vendor feedback differs'
-            : result.isOwnerCorrect
-              ? 'Owner correct'
-              : 'Owner differs'
+            : result.correctAction === 'snooze'
+              ? result.isSnoozeReasonCorrect
+                ? 'Reason correct'
+                : 'Reason differs'
+              : result.isOwnerCorrect
+                ? 'Owner correct'
+                : 'Owner differs'
         }}
       </span>
       <span class="pill" :class="scoreTone(result)">
@@ -101,6 +119,12 @@ defineEmits<{ continue: [] }>();
         {{ result.securityLesson }}
       </div>
       <div
+        v-if="result.correctAction === 'snooze' && result.correctSnoozeReason"
+        class="mt-4 text-sm text-mist"
+      >
+        Correct snooze reason: {{ result.correctSnoozeReason }}
+      </div>
+      <div
         v-if="result.correctAction === 'ignore' && result.correctIgnoreFeedback"
         class="mt-4 text-sm text-mist"
       >
@@ -112,9 +136,9 @@ defineEmits<{ continue: [] }>();
           }}{{ result.actionScoreDelta }} action
         </span>
         <span class="text-mist/50"> / </span>
-        <span :class="componentTone(result.ownerScoreDelta)">
-          {{ result.ownerScoreDelta >= 0 ? '+' : ''
-          }}{{ result.ownerScoreDelta }} {{ secondaryLabel(result) }}
+        <span :class="componentTone(result.secondaryScoreDelta)">
+          {{ result.secondaryScoreDelta >= 0 ? '+' : ''
+          }}{{ result.secondaryScoreDelta }} {{ secondaryLabel(result) }}
         </span>
         <span class="text-mist/50"> / </span>
         <span :class="componentTone(result.streakBonusDelta)">

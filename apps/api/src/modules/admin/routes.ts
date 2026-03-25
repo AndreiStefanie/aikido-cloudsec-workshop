@@ -65,15 +65,26 @@ const scenarioSchema = z
       .optional(),
     resources: z.array(resourceSchema).min(1),
     securityLesson: z.string().min(1),
-    ignoreFeedbackOptions: z.array(z.string().min(1)).length(3),
+    snoozeReasonOptions: z.array(z.string().min(1)).optional(),
+    ignoreFeedbackOptions: z.array(z.string().min(1)),
     answer: z.object({
       action: z.enum(actions),
       ownerTeam: z.enum(teams).optional(),
+      snoozeReason: z.string().min(1).optional(),
       ignoreFeedback: z.string().min(1).optional(),
     }),
   })
   .superRefine((scenario, ctx) => {
     if (scenario.answer.action === 'ignore') {
+      if (scenario.ignoreFeedbackOptions.length !== 3) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            'Ignore scenarios require exactly 3 vendor feedback options.',
+          path: ['ignoreFeedbackOptions'],
+        });
+      }
+
       if (!scenario.answer.ignoreFeedback) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -84,10 +95,29 @@ const scenarioSchema = z
       return;
     }
 
+    if (scenario.answer.action === 'snooze') {
+      if ((scenario.snoozeReasonOptions ?? []).length !== 3) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Snooze scenarios require exactly 3 snooze reason options.',
+          path: ['snoozeReasonOptions'],
+        });
+      }
+
+      if (!scenario.answer.snoozeReason) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Snooze scenarios require a correct snooze reason.',
+          path: ['answer', 'snoozeReason'],
+        });
+      }
+      return;
+    }
+
     if (!scenario.answer.ownerTeam) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Fix and snooze scenarios require a correct owner.',
+        message: 'Fix scenarios require a correct owner.',
         path: ['answer', 'ownerTeam'],
       });
     }

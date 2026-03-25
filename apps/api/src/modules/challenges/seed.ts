@@ -166,9 +166,15 @@ export const seedChallenges: ChallengeDefinition[] = [
         ],
         securityLesson:
           'Severity alone does not determine priority. Exposure, reachable attack paths, and the operational cost of remediation all matter when deciding whether to fix now or schedule the work.',
+        snoozeReasonOptions: [
+          'Access is limited to a tightly controlled administrative path, so remediation can be scheduled through normal platform maintenance.',
+          'Any vulnerability on a bastion should be deferred automatically because administrators need continuous access.',
+          'High-severity package findings should be snoozed whenever the instance is tagged as shared infrastructure.',
+        ],
         answer: {
           action: 'snooze',
-          ownerTeam: 'Cloud Platform Team',
+          snoozeReason:
+            'Access is limited to a tightly controlled administrative path, so remediation can be scheduled through normal platform maintenance.',
         },
       },
       {
@@ -243,14 +249,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         order: 4,
         title: 'Serverless Function with Overly Broad Execution Role',
         description:
-          'The execution role associated with this AWS Lambda function includes the AWS managed AdministratorAccess policy. The function runs automatically whenever new objects are uploaded to the connected S3 bucket by end users through the application upload flow.',
+          'Ensure AWS Lambda execution roles do not grant full administrative access. Serverless workloads should run with least privilege and should not use broad AWS managed policies such as AdministratorAccess.',
         severityLabel: 'high',
         sla: {
           status: 'overdue',
           days: 32,
         },
         remediation:
-          'Replace AdministratorAccess with a least-privilege policy that allows only the S3 object-read, logging, and downstream service actions required by the upload-processing workflow. Because the function processes files supplied by end users, review the event source mapping and execution path carefully and confirm the function cannot perform unrelated account-wide actions if malicious or unexpected content is uploaded.',
+          'Review the Lambda execution role and remove full administrative permissions. Replace broad policies with a least-privilege policy that grants only the actions required for the function runtime, event source, logging, and downstream integrations.',
         ignoreFeedbackOptions: [
           'Automatically ignore Lambda permission findings when the function is triggered only by S3 uploads.',
           'Automatically ignore AdministratorAccess findings when the function is used for internal file processing.',
@@ -339,14 +345,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         order: 5,
         title: 'IAM Role Trusted by an External AWS Account',
         description:
-          'An IAM role in this AWS account allows `sts:AssumeRole` from another AWS account that is not part of the organization. Cross-account trust relationships are commonly flagged because they can allow external principals to access internal cloud resources.',
+          'Ensure IAM roles do not trust external AWS accounts unless cross-account access is explicitly required and approved. Trust relationships with accounts outside the organization can permit external principals to assume internal roles.',
         severityLabel: 'medium',
         sla: {
           status: 'due_soon',
           days: 18,
         },
         remediation:
-          'If the external trust is not expected, remove the cross-account principal from the trust policy and replace it with an in-organization role or service principal. If the trust is expected because it is used by an approved third-party cloud security integration, the durable fix is to improve detection context so approved vendor roles are recognized automatically.',
+          'Review the role trust policy and remove external principals that are not required. If cross-account access is legitimate, scope the trust appropriately and document the approved use case so the control can be evaluated with the correct context.',
         ignoreFeedbackOptions: [
           'Automatically ignore approved third-party cross-account IAM roles when the trusted external account is tied to a verified security integration and the role usage matches that integration.',
           'Automatically ignore all IAM roles that trust accounts outside of the organization whenever the role is tagged as owned by Security.',
@@ -411,14 +417,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         order: 6,
         title: 'Secrets Detected in Azure Functions App Settings',
         description:
-          'Multiple secrets were detected in the environment variables configured on this Azure Function App. These values are exposed as application settings on the resource, which means a principal with permission to read the Function App configuration can retrieve them directly by describing the cloud resource.',
+          'Ensure application secrets are not stored directly in Azure Function App settings. Sensitive values placed in environment configuration can be exposed through control-plane access to the application resource.',
         severityLabel: 'high',
         sla: {
           status: 'overdue',
           days: 27,
         },
         remediation:
-          'Move the secrets out of the Function App settings and store them in Azure Key Vault. Replace the plaintext values with Key Vault references backed by the Function App managed identity so the application can keep using app settings without embedding the secrets directly in the resource configuration. This improves access control, auditability, and secret rotation with limited implementation overhead.',
+          'Move plaintext secrets out of Function App settings and store them in a dedicated secret-management service. Where supported, replace inline values with managed secret references so the application can resolve the secret at runtime without embedding it directly in resource configuration.',
         ignoreFeedbackOptions: [
           'Automatically ignore secrets in Azure Functions app settings when the Function App uses a system-assigned managed identity.',
           'Automatically ignore app-setting secrets when the resource is tagged as owned by the platform team.',
@@ -509,14 +515,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         order: 7,
         title: 'Public Kubernetes Dashboard with Exposed Cloud Credentials',
         description:
-          'A Kubernetes dashboard is reachable from the internet without strong access controls. From the dashboard, an attacker can enumerate workloads and inspect pod configuration. One running pod exposes AWS access credentials that can be used outside the cluster.',
+          'Ensure administrative Kubernetes interfaces are not exposed to the public internet and that cloud credentials are not stored directly in workload configuration. Public management surfaces and reusable credentials can materially expand the blast radius of a cluster exposure.',
         severityLabel: 'critical',
         sla: {
           status: 'overdue',
           days: 12,
         },
         remediation:
-          'Remove public access to the dashboard immediately and restrict administrative interfaces to trusted networks with strong authentication. Eliminate long-lived cloud credentials from pod configuration and replace them with workload-scoped identity where possible. Review the exposed AWS permissions and rotate the compromised credentials because they may already have been used for resource abuse such as cryptomining or unauthorized data access.',
+          'Restrict access to administrative Kubernetes interfaces and remove reusable cloud credentials from workload configuration. Replace static secrets with workload-scoped identity where possible and review any exposed credentials for rotation and downstream impact.',
         ignoreFeedbackOptions: [
           'Automatically ignore public Kubernetes dashboard findings when the dashboard belongs to a non-production cluster.',
           'Automatically ignore cloud credential exposure findings when the leaked AWS key only has access to S3.',
@@ -535,7 +541,10 @@ export const seedChallenges: ChallengeDefinition[] = [
             detailRows: [
               { field: 'Exposure', value: 'Public internet' },
               { field: 'Authentication', value: 'Weak or missing' },
-              { field: 'Reachable URL', value: 'https://dashboard.shared-eks.example.com' },
+              {
+                field: 'Reachable URL',
+                value: 'https://dashboard.shared-eks.example.com',
+              },
             ],
             environment: 'production',
             ownerHints: ['Cloud Platform Team'],
@@ -553,7 +562,10 @@ export const seedChallenges: ChallengeDefinition[] = [
             detailsLabel: 'View details',
             detailRows: [
               { field: 'Namespace', value: 'ops' },
-              { field: 'Exposed AWS Credential', value: 'AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY' },
+              {
+                field: 'Exposed AWS Credential',
+                value: 'AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY',
+              },
               { field: 'Runtime Status', value: 'Running' },
             ],
             environment: 'production',
@@ -573,7 +585,10 @@ export const seedChallenges: ChallengeDefinition[] = [
             detailRows: [
               { field: 'Attached Policies', value: 'AmazonS3FullAccess' },
               { field: 'Access Key Type', value: 'Long-lived static key' },
-              { field: 'Recent Activity', value: 'Observed from pod environment' },
+              {
+                field: 'Recent Activity',
+                value: 'Observed from pod environment',
+              },
             ],
             environment: 'production',
             ownerHints: ['Cloud Platform Team'],
@@ -591,7 +606,8 @@ export const seedChallenges: ChallengeDefinition[] = [
       {
         id: 'scn-azure-storage-public-network-access-disabled',
         order: 8,
-        title: "Ensure 'Public Network Access' Is Disabled for Storage Accounts",
+        title:
+          "Ensure 'Public Network Access' Is Disabled for Storage Accounts",
         description:
           'This Azure Storage account still shows `Public Network Access` as enabled. In isolation, that setting is often treated as a high-signal control because it allows the resource to accept public traffic unless other restrictions apply.',
         severityLabel: 'medium',
@@ -600,7 +616,7 @@ export const seedChallenges: ChallengeDefinition[] = [
           days: 16,
         },
         remediation:
-          'If the storage account still relies on legacy firewall controls, disable public network access directly on the account. If the account is already protected by an enforced Azure Network Security Perimeter that acts as the top-level network gatekeeper, the better long-term fix is to improve detection logic so perimeter-protected accounts are recognized and this finding is suppressed automatically.',
+          'Disable public network access for storage accounts unless an approved compensating control already enforces the effective network boundary. Where newer top-level controls are in place, validate whether the finding still represents real exposure.',
         ignoreFeedbackOptions: [
           'Automatically ignore storage accounts with public network access enabled when the account is associated with an enforced Azure Network Security Perimeter that already governs inbound and outbound public access.',
           'Automatically ignore this finding whenever the storage account also has a private endpoint configured.',
@@ -619,12 +635,16 @@ export const seedChallenges: ChallengeDefinition[] = [
             detailRows: [
               { field: 'Public Network Access', value: 'Enabled' },
               { field: 'Private Endpoints', value: 'None' },
-              { field: 'Allowed Networks', value: 'Not relied on for primary enforcement' },
+              {
+                field: 'Allowed Networks',
+                value: 'Not relied on for primary enforcement',
+              },
             ],
             environment: 'production',
             ownerHints: ['Cloud Platform Team'],
             exposure: 'restricted',
-            notes: 'Storage account already onboarded to a perimeter-based network control',
+            notes:
+              'Storage account already onboarded to a perimeter-based network control',
           },
           {
             id: 'res-az-6',
@@ -643,7 +663,8 @@ export const seedChallenges: ChallengeDefinition[] = [
             environment: 'production',
             ownerHints: ['Cloud Platform Team'],
             exposure: 'restricted',
-            notes: 'Perimeter rules override the account firewall and act as the top-level network gatekeeper',
+            notes:
+              'Perimeter rules override the account firewall and act as the top-level network gatekeeper',
           },
         ],
         securityLesson:
@@ -659,14 +680,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         order: 9,
         title: 'Network Load Balancer Reported Without Access Logs',
         description:
-          'This Network Load Balancer is flagged as not having access logs enabled. Historically, this has been treated as a visibility gap because NLB traffic logs were expected to be delivered through the older access-log destinations that many cloud security tools check for.',
+          'Ensure access logging is enabled for Network Load Balancers. Load balancer request visibility is commonly required for traffic monitoring, incident response, and compliance evidence.',
         severityLabel: 'low',
         sla: {
           status: 'due_soon',
           days: 20,
         },
         remediation:
-          'If the load balancer truly has no logging configured, enable NLB access logs. If access logs are already delivered through the newer CloudWatch Logs integration, the better long-term fix is to update detection logic so CloudWatch-backed NLB logging is recognized as satisfying the control instead of repeatedly flagging a false gap.',
+          'Enable access logging for the load balancer using a supported logging destination. If logging is already configured through an alternate supported integration path, validate whether the finding reflects a detection gap rather than a true control failure.',
         ignoreFeedbackOptions: [
           'Automatically ignore NLB access-log findings when access logs are already configured through the newer CloudWatch Logs integration, even if the legacy check path does not recognize that destination yet.',
           'Automatically ignore NLB access-log findings whenever the load balancer belongs to a non-internet-facing service.',
@@ -726,14 +747,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         order: 10,
         title: 'EC2 Instance Still Allows IMDSv1',
         description:
-          'This EC2 instance still permits Instance Metadata Service Version 1 (IMDSv1). If an attacker can coerce the application into making arbitrary HTTP requests, IMDSv1 can expose temporary AWS credentials for the attached instance profile without the session-oriented protections introduced in IMDSv2.',
+          'Ensure EC2 instances require Instance Metadata Service Version 2 (IMDSv2). IMDSv1 exposes metadata without the session-oriented protections provided by IMDSv2 and can increase the impact of application-layer request-forgery flaws.',
         severityLabel: 'critical',
         sla: {
           status: 'overdue',
           days: 9,
         },
         remediation:
-          'Require IMDSv2 on the EC2 instance immediately and review the application tier for SSRF exposure. Rotate or revoke the instance profile credentials if compromise is plausible, and reduce the attached IAM permissions so an application-layer flaw cannot be turned into broad S3 access. The path to impact here is the combination of IMDSv1, an SSRF-capable workload, and an instance profile that can enumerate or read sensitive S3 data.',
+          'Require IMDSv2 on the EC2 instance and review the attached instance profile permissions. Where possible, reduce the role scope and confirm application components cannot abuse metadata access paths.',
         ignoreFeedbackOptions: [
           'Automatically ignore IMDSv1 findings when the EC2 instance does not have a public IP.',
           'Automatically ignore IMDSv1 findings whenever the attached IAM role is used only by a web application firewall.',
@@ -753,12 +774,16 @@ export const seedChallenges: ChallengeDefinition[] = [
               { field: 'Metadata Options', value: 'IMDSv1 allowed' },
               { field: 'Instance Profile', value: 'edge-app-role' },
               { field: 'Public IP', value: 'Present' },
-              { field: 'Exposed Workload', value: 'Reverse proxy / application endpoint' },
+              {
+                field: 'Exposed Workload',
+                value: 'Reverse proxy / application endpoint',
+              },
             ],
             environment: 'production',
             ownerHints: ['Cloud Platform Team'],
             exposure: 'public',
-            notes: 'Internet-facing workload where SSRF materially changes the risk',
+            notes:
+              'Internet-facing workload where SSRF materially changes the risk',
           },
           {
             id: 'res-aws-17',
@@ -770,8 +795,14 @@ export const seedChallenges: ChallengeDefinition[] = [
             account: 'AWS production account',
             detailsLabel: 'View details',
             detailRows: [
-              { field: 'User Input Path', value: 'URL fetch / proxy endpoint present' },
-              { field: 'Attack Primitive', value: 'SSRF can reach instance metadata endpoint' },
+              {
+                field: 'User Input Path',
+                value: 'URL fetch / proxy endpoint present',
+              },
+              {
+                field: 'Attack Primitive',
+                value: 'SSRF can reach instance metadata endpoint',
+              },
             ],
             environment: 'production',
             ownerHints: ['Application Team'],
@@ -789,13 +820,17 @@ export const seedChallenges: ChallengeDefinition[] = [
             detailsLabel: 'View details',
             detailRows: [
               { field: 'Trusted Service', value: 'ec2.amazonaws.com' },
-              { field: 'Allowed Actions', value: 's3:ListBucket, s3:GetObject' },
+              {
+                field: 'Allowed Actions',
+                value: 's3:ListBucket, s3:GetObject',
+              },
               { field: 'Scope', value: 'customer-data-* buckets' },
             ],
             environment: 'production',
             ownerHints: ['Cloud Platform Team'],
             exposure: 'restricted',
-            notes: 'Instance profile permissions make S3 data access possible after credential theft',
+            notes:
+              'Instance profile permissions make S3 data access possible after credential theft',
           },
           {
             id: 'res-aws-19',
@@ -813,7 +848,8 @@ export const seedChallenges: ChallengeDefinition[] = [
             environment: 'production',
             ownerHints: ['Data Team', 'Cloud Platform Team'],
             exposure: 'restricted',
-            notes: 'Sensitive bucket reachable with the instance profile credentials',
+            notes:
+              'Sensitive bucket reachable with the instance profile credentials',
           },
         ],
         securityLesson:
@@ -828,14 +864,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         order: 11,
         title: 'Publicly Shared EBS Snapshot',
         description:
-          'An Amazon EBS snapshot is publicly shared and can be copied by other AWS accounts. Public snapshots are high-signal findings because volume snapshots can contain operating system images, application artifacts, credentials, or historical data that should not be broadly accessible.',
+          'Ensure Amazon EBS snapshots are not publicly shared. Public snapshots can expose operating system images, application artifacts, credentials, or other historical data to any AWS account.',
         severityLabel: 'high',
         sla: {
           status: 'due_soon',
           days: 11,
         },
         remediation:
-          'If the snapshot does not need to be public, remove the public sharing permission immediately and re-share it only with the specific AWS accounts that require access. If the snapshot is still part of an active image-distribution workflow, the safer path is to confirm which downstream accounts, pipelines, or teams still depend on public access before changing the sharing model, then migrate them to an explicit allowlist.',
+          'Remove public snapshot sharing and replace it with explicit account-level sharing where required. Before changing the sharing model, confirm whether any active workflows or downstream consumers still depend on the current distribution path.',
         ignoreFeedbackOptions: [
           'Automatically ignore public EBS snapshot findings when the snapshot was created by an approved AMI distribution pipeline.',
           'Automatically ignore public snapshot findings whenever the snapshot is tagged as shared.',
@@ -854,12 +890,17 @@ export const seedChallenges: ChallengeDefinition[] = [
             detailRows: [
               { field: 'Public Sharing', value: 'Enabled' },
               { field: 'Source Volume', value: 'golden-ami-builder-root' },
-              { field: 'Description', value: 'Base image snapshot for partner and internal account distribution' },
+              {
+                field: 'Description',
+                value:
+                  'Base image snapshot for partner and internal account distribution',
+              },
             ],
             environment: 'production',
             ownerHints: ['Cloud Platform Team'],
             exposure: 'public',
-            notes: 'Snapshot is publicly shareable and may contain reusable system artifacts',
+            notes:
+              'Snapshot is publicly shareable and may contain reusable system artifacts',
           },
           {
             id: 'res-aws-21',
@@ -871,14 +912,24 @@ export const seedChallenges: ChallengeDefinition[] = [
             account: 'AWS production account',
             detailsLabel: 'View details',
             detailRows: [
-              { field: 'Current Dependents', value: '12 downstream AWS accounts' },
-              { field: 'Distribution Method', value: 'Public snapshot copied into consumer accounts' },
-              { field: 'Migration Status', value: 'Account allowlist migration planned but not complete' },
+              {
+                field: 'Current Dependents',
+                value: '12 downstream AWS accounts',
+              },
+              {
+                field: 'Distribution Method',
+                value: 'Public snapshot copied into consumer accounts',
+              },
+              {
+                field: 'Migration Status',
+                value: 'Account allowlist migration planned but not complete',
+              },
             ],
             environment: 'production',
             ownerHints: ['Cloud Platform Team'],
             exposure: 'restricted',
-            notes: 'There is still an active dependency on the current sharing model',
+            notes:
+              'There is still an active dependency on the current sharing model',
           },
           {
             id: 'res-aws-22',
@@ -890,20 +941,34 @@ export const seedChallenges: ChallengeDefinition[] = [
             account: 'AWS production account',
             detailsLabel: 'View details',
             detailRows: [
-              { field: 'Embedded Secrets', value: 'No confirmed plaintext secrets detected' },
-              { field: 'Residual Risk', value: 'Image contents still visible to any AWS account while public' },
+              {
+                field: 'Embedded Secrets',
+                value: 'No confirmed plaintext secrets detected',
+              },
+              {
+                field: 'Residual Risk',
+                value:
+                  'Image contents still visible to any AWS account while public',
+              },
             ],
             environment: 'production',
             ownerHints: ['Security Team', 'Cloud Platform Team'],
             exposure: 'restricted',
-            notes: 'Security concern is real, but dependency analysis matters before revoking access',
+            notes:
+              'Security concern is real, but dependency analysis matters before revoking access',
           },
         ],
         securityLesson:
           'Public snapshots are dangerous because they can expose historical system state and embedded secrets, but the best remediation still depends on context. Before revoking public access, understand who depends on that sharing model so you can migrate them safely rather than breaking an active image-distribution workflow.',
+        snoozeReasonOptions: [
+          'The exposure is real, but an active image-distribution workflow still depends on this sharing model, so consumers should be mapped before changing it.',
+          'Public snapshots can be deferred whenever a security scan has not confirmed plaintext secrets.',
+          'Snapshot exposure should be snoozed automatically if the backing volume was encrypted originally.',
+        ],
         answer: {
           action: 'snooze',
-          ownerTeam: 'Cloud Platform Team',
+          snoozeReason:
+            'The exposure is real, but an active image-distribution workflow still depends on this sharing model, so consumers should be mapped before changing it.',
         },
       },
       {
@@ -911,14 +976,14 @@ export const seedChallenges: ChallengeDefinition[] = [
         order: 12,
         title: 'S3 Bucket Policy Allows Broad Access',
         description:
-          'This S3 bucket policy grants broad read access at the bucket layer. Normally, that would make the bucket a high-priority exposure because unauthorized principals could list or retrieve stored objects directly from S3.',
+          'Ensure S3 bucket policies do not grant broad access to stored data. Bucket policies should allow only the principals that require access for the intended workload.',
         severityLabel: 'medium',
         sla: {
           status: 'due_soon',
           days: 13,
         },
         remediation:
-          'Tighten the bucket policy so only the intended principals can read from the bucket. In this case, the objects are protected with SSE-KMS and the relevant KMS key does not currently allow broad decrypt access, which reduces the immediate data-exfiltration risk. The issue should still be cleaned up because the S3 policy is clearly wider than intended and could become exploitable if KMS permissions expand or if the bucket starts storing objects under a different encryption posture.',
+          'Review and tighten the bucket policy so read access is limited to the intended principals. Evaluate related encryption and key-management controls to determine whether the current exposure is directly exploitable or partially mitigated by a stronger downstream access gate.',
         ignoreFeedbackOptions: [
           'Automatically ignore broad S3 bucket access findings when the bucket uses SSE-KMS encryption.',
           'Automatically ignore public bucket policy findings when the bucket has versioning enabled.',
@@ -942,7 +1007,8 @@ export const seedChallenges: ChallengeDefinition[] = [
             environment: 'production',
             ownerHints: ['Data Team'],
             exposure: 'public',
-            notes: 'Bucket access is wider than intended, but object reads still depend on KMS decrypt permissions',
+            notes:
+              'Bucket access is wider than intended, but object reads still depend on KMS decrypt permissions',
           },
           {
             id: 'res-aws-24',
@@ -955,13 +1021,17 @@ export const seedChallenges: ChallengeDefinition[] = [
             detailsLabel: 'View details',
             detailRows: [
               { field: 'Key Usage', value: 'Encrypt / Decrypt' },
-              { field: 'Allowed Principals', value: 'Restricted application and analytics roles only' },
+              {
+                field: 'Allowed Principals',
+                value: 'Restricted application and analytics roles only',
+              },
               { field: 'Anonymous or wildcard decrypt', value: 'No' },
             ],
             environment: 'production',
             ownerHints: ['Data Team'],
             exposure: 'restricted',
-            notes: 'KMS policy materially limits direct object retrieval by unauthorized principals',
+            notes:
+              'KMS policy materially limits direct object retrieval by unauthorized principals',
           },
           {
             id: 'res-aws-25',
@@ -973,20 +1043,33 @@ export const seedChallenges: ChallengeDefinition[] = [
             account: 'AWS production account',
             detailsLabel: 'View details',
             detailRows: [
-              { field: 'S3 Access', value: 's3:GetObject on reports-export-prod/*' },
-              { field: 'KMS Access', value: 'kms:Decrypt on alias/reports-export-kms' },
+              {
+                field: 'S3 Access',
+                value: 's3:GetObject on reports-export-prod/*',
+              },
+              {
+                field: 'KMS Access',
+                value: 'kms:Decrypt on alias/reports-export-kms',
+              },
             ],
             environment: 'production',
             ownerHints: ['Application Team'],
             exposure: 'restricted',
-            notes: 'Legitimate readers still work because they also have KMS decrypt',
+            notes:
+              'Legitimate readers still work because they also have KMS decrypt',
           },
         ],
         securityLesson:
           'KMS encryption can materially reduce the immediate impact of a broad S3 policy because object retrieval still depends on decrypt rights. That makes the issue lower urgency than a truly public plaintext bucket, but not safe to ignore, because the access model is still wider than intended and can become exploitable if KMS permissions or encryption patterns change.',
+        snoozeReasonOptions: [
+          'KMS decrypt permissions still gate data access, which lowers the immediate exfiltration risk enough to defer cleanup into normal backlog work.',
+          'Buckets encrypted with SSE-KMS can be snoozed by default because encryption eliminates the access issue.',
+          'Any analytics export bucket should be snoozed when it is used by internal reporting jobs.',
+        ],
         answer: {
           action: 'snooze',
-          ownerTeam: 'Application Team',
+          snoozeReason:
+            'KMS decrypt permissions still gate data access, which lowers the immediate exfiltration risk enough to defer cleanup into normal backlog work.',
         },
       },
     ],

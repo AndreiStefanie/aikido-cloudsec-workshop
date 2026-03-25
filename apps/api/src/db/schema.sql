@@ -22,6 +22,7 @@ CREATE TABLE
     diagram JSONB,
     resources JSONB NOT NULL,
     security_lesson TEXT NOT NULL,
+    snooze_reason_options JSONB NOT NULL DEFAULT '[]'::jsonb,
     ignore_feedback_options JSONB NOT NULL DEFAULT '[]'::jsonb,
     answer JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -51,6 +52,7 @@ CREATE TABLE
     scenario_id UUID NOT NULL REFERENCES scenarios (id) ON DELETE CASCADE,
     submitted_action TEXT NOT NULL,
     submitted_owner_team TEXT,
+    submitted_snooze_reason TEXT,
     result JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (session_id, scenario_id)

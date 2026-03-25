@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { teams, type TeamType } from '@workshop/shared';
+import { type TeamType, teams } from '@workshop/shared';
 import type { ScenarioDefinition, UpsertScenarioInput } from '@workshop/shared';
 import { reactive, watch } from 'vue';
 
@@ -32,9 +32,11 @@ const form = reactive({
   diagramAlt: '',
   diagramTitle: '',
   resourcesJson: '[]',
+  snoozeReasonOptionsText: '',
   ignoreFeedbackOptionsText: '',
   answerAction: 'fix' as UpsertScenarioInput['answer']['action'],
   answerOwner: 'DevOps Team' as TeamType,
+  answerSnoozeReason: '',
   answerIgnoreFeedback: '',
   securityLesson: '',
 });
@@ -55,11 +57,15 @@ watch(
     form.diagramAlt = value?.diagram?.alt ?? '';
     form.diagramTitle = value?.diagram?.title ?? '';
     form.resourcesJson = JSON.stringify(value?.resources ?? [], null, 2);
+    form.snoozeReasonOptionsText = (value?.snoozeReasonOptions ?? []).join(
+      '\n'
+    );
     form.ignoreFeedbackOptionsText = (value?.ignoreFeedbackOptions ?? []).join(
       '\n'
     );
     form.answerAction = value?.answer.action ?? 'fix';
     form.answerOwner = value?.answer.ownerTeam ?? 'DevOps Team';
+    form.answerSnoozeReason = value?.answer.snoozeReason ?? '';
     form.answerIgnoreFeedback = value?.answer.ignoreFeedback ?? '';
     form.securityLesson = value?.securityLesson ?? '';
     formError.message = '';
@@ -70,6 +76,10 @@ watch(
 function submit() {
   try {
     const resources = JSON.parse(form.resourcesJson);
+    const snoozeReasonOptions = form.snoozeReasonOptionsText
+      .split('\n')
+      .map(option => option.trim())
+      .filter(Boolean);
     const ignoreFeedbackOptions = form.ignoreFeedbackOptionsText
       .split('\n')
       .map(option => option.trim())
@@ -81,7 +91,7 @@ function submit() {
       form.diagramTitle.trim()
     );
 
-    if (ignoreFeedbackOptions.length !== 3) {
+    if (form.answerAction === 'ignore' && ignoreFeedbackOptions.length !== 3) {
       formError.message = 'Provide exactly 3 ignore feedback options.';
       return;
     }
@@ -92,6 +102,11 @@ function submit() {
     ) {
       formError.message =
         'Provide both a diagram image path and alt text, or leave all diagram fields empty.';
+      return;
+    }
+
+    if (form.answerAction === 'snooze' && snoozeReasonOptions.length !== 3) {
+      formError.message = 'Provide exactly 3 snooze reason options.';
       return;
     }
 
@@ -116,12 +131,18 @@ function submit() {
             }
           : undefined,
         resources,
-        ignoreFeedbackOptions,
+        snoozeReasonOptions:
+          form.answerAction === 'snooze' ? snoozeReasonOptions : [],
+        ignoreFeedbackOptions:
+          form.answerAction === 'ignore' ? ignoreFeedbackOptions : [],
         securityLesson: form.securityLesson,
         answer: {
           action: form.answerAction,
-          ownerTeam:
-            form.answerAction === 'ignore' ? undefined : form.answerOwner,
+          ownerTeam: form.answerAction === 'fix' ? form.answerOwner : undefined,
+          snoozeReason:
+            form.answerAction === 'snooze'
+              ? form.answerSnoozeReason || undefined
+              : undefined,
           ignoreFeedback:
             form.answerAction === 'ignore'
               ? form.answerIgnoreFeedback || undefined
@@ -255,7 +276,18 @@ function submit() {
           required
         />
       </label>
-      <label class="block md:col-span-2">
+      <label v-if="form.answerAction === 'snooze'" class="block md:col-span-2">
+        <span class="mb-2 block text-sm font-semibold">
+          Snooze reason options
+        </span>
+        <textarea
+          v-model="form.snoozeReasonOptionsText"
+          rows="4"
+          class="w-full rounded-2xl border-slate-200 px-4 py-3"
+          placeholder="One option per line"
+        />
+      </label>
+      <label v-if="form.answerAction === 'ignore'" class="block md:col-span-2">
         <span class="mb-2 block text-sm font-semibold">
           Ignore feedback options
         </span>
@@ -278,7 +310,7 @@ function submit() {
           <option value="ignore">Ignore</option>
         </select>
       </label>
-      <label v-if="form.answerAction !== 'ignore'" class="block">
+      <label v-if="form.answerAction === 'fix'" class="block">
         <span class="mb-2 block text-sm font-semibold">Correct owner</span>
         <select
           v-model="form.answerOwner"
@@ -288,6 +320,16 @@ function submit() {
             {{ team }}
           </option>
         </select>
+      </label>
+      <label v-if="form.answerAction === 'snooze'" class="block md:col-span-2">
+        <span class="mb-2 block text-sm font-semibold">
+          Correct snooze reason
+        </span>
+        <input
+          v-model="form.answerSnoozeReason"
+          class="w-full rounded-2xl border-slate-200 px-4 py-3"
+          placeholder="Required when correct action is Snooze"
+        />
       </label>
       <label v-if="form.answerAction === 'ignore'" class="block md:col-span-2">
         <span class="mb-2 block text-sm font-semibold">

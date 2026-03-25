@@ -17,11 +17,30 @@ const resumeSchema = z.object({
   challengeSlug: z.string().min(1),
 });
 
-const decisionSchema = z.object({
-  action: z.enum(actions),
-  ownerTeam: z.enum(teams).optional(),
-  ignoreFeedback: z.string().min(1).optional(),
-});
+const decisionSchema = z
+  .object({
+    action: z.enum(actions),
+    ownerTeam: z.enum(teams).optional(),
+    snoozeReason: z.string().min(1).optional(),
+    ignoreFeedback: z.string().min(1).optional(),
+  })
+  .superRefine((decision, ctx) => {
+    if (decision.action === 'fix' && !decision.ownerTeam) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Owner is required for fix decisions.',
+        path: ['ownerTeam'],
+      });
+    }
+
+    if (decision.action === 'snooze' && !decision.snoozeReason) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Snooze reason is required for snooze decisions.',
+        path: ['snoozeReason'],
+      });
+    }
+  });
 
 export function createPlayerRouter(repository: Repository) {
   const router = Router();

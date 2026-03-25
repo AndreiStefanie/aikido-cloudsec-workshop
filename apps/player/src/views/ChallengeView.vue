@@ -14,6 +14,7 @@ const router = useRouter();
 const sessionStore = useSessionStore();
 const selectedAction = ref<ActionType | null>(null);
 const selectedOwner = ref<TeamType | null>(null);
+const selectedSnoozeReason = ref<string | null>(null);
 const selectedIgnoreFeedback = ref<string | null>(null);
 const submittingTransition = ref(false);
 
@@ -61,7 +62,15 @@ function componentTone(delta: number, positiveColor = 'text-mint-100') {
 }
 
 function secondaryLabel(review: { correctAction: ActionType }) {
-  return review.correctAction === 'ignore' ? 'vendor' : 'owner';
+  if (review.correctAction === 'ignore') {
+    return 'vendor';
+  }
+
+  if (review.correctAction === 'snooze') {
+    return 'reason';
+  }
+
+  return 'owner';
 }
 
 async function ensureSession() {
@@ -92,7 +101,8 @@ async function continueAfterFeedback() {
 async function submit() {
   if (
     !selectedAction.value ||
-    (selectedAction.value !== 'ignore' && !selectedOwner.value) ||
+    (selectedAction.value === 'fix' && !selectedOwner.value) ||
+    (selectedAction.value === 'snooze' && !selectedSnoozeReason.value) ||
     (selectedAction.value === 'ignore' &&
       sessionStore.bootstrap?.currentScenario?.answer.action === 'ignore' &&
       !selectedIgnoreFeedback.value)
@@ -106,19 +116,24 @@ async function submit() {
       sessionStore.answer({
         action: selectedAction.value,
         ownerTeam:
-          selectedAction.value === 'ignore'
-            ? undefined
-            : selectedOwner.value ?? undefined,
+          selectedAction.value === 'fix'
+            ? (selectedOwner.value ?? undefined)
+            : undefined,
+        snoozeReason:
+          selectedAction.value === 'snooze'
+            ? (selectedSnoozeReason.value ?? undefined)
+            : undefined,
         ignoreFeedback:
           selectedAction.value === 'ignore' &&
           sessionStore.bootstrap?.currentScenario?.answer.action === 'ignore'
-            ? selectedIgnoreFeedback.value ?? undefined
+            ? (selectedIgnoreFeedback.value ?? undefined)
             : undefined,
       }),
       new Promise(resolve => window.setTimeout(resolve, 250)),
     ]);
     selectedAction.value = null;
     selectedOwner.value = null;
+    selectedSnoozeReason.value = null;
     selectedIgnoreFeedback.value = null;
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
@@ -146,10 +161,20 @@ onMounted(async () => {
 watch(selectedAction, action => {
   if (action === 'ignore') {
     selectedOwner.value = null;
+    selectedSnoozeReason.value = null;
     return;
   }
 
-  selectedIgnoreFeedback.value = null;
+  if (action === 'snooze') {
+    selectedOwner.value = null;
+    selectedIgnoreFeedback.value = null;
+    return;
+  }
+
+  if (action === 'fix') {
+    selectedSnoozeReason.value = null;
+    selectedIgnoreFeedback.value = null;
+  }
 });
 </script>
 
@@ -227,6 +252,7 @@ watch(selectedAction, action => {
         <ScenarioCard
           v-model:action="selectedAction"
           v-model:owner="selectedOwner"
+          v-model:snooze-reason="selectedSnoozeReason"
           v-model:ignore-feedback="selectedIgnoreFeedback"
           :scenario="sessionStore.bootstrap.currentScenario"
           :submitting="sessionStore.loading"
@@ -236,7 +262,8 @@ watch(selectedAction, action => {
           class="w-full rounded-2xl bg-aikido-100 px-4 py-4 font-display text-lg text-aikido-950 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
           :disabled="
             !selectedAction ||
-            (selectedAction !== 'ignore' && !selectedOwner) ||
+            (selectedAction === 'fix' && !selectedOwner) ||
+            (selectedAction === 'snooze' && !selectedSnoozeReason) ||
             (selectedAction === 'ignore' &&
               sessionStore.bootstrap?.currentScenario?.answer.action ===
                 'ignore' &&
@@ -317,15 +344,34 @@ watch(selectedAction, action => {
               <div class="mt-2 text-sm text-mist">
                 {{ review.securityLesson }}
               </div>
+              <div
+                v-if="
+                  review.correctAction === 'snooze' &&
+                  review.correctSnoozeReason
+                "
+                class="mt-3 text-sm text-mist"
+              >
+                Correct snooze reason: {{ review.correctSnoozeReason }}
+              </div>
+              <div
+                v-if="
+                  review.correctAction === 'ignore' &&
+                  review.correctIgnoreFeedback
+                "
+                class="mt-3 text-sm text-mist"
+              >
+                Correct vendor feedback: {{ review.correctIgnoreFeedback }}
+              </div>
               <div class="mt-3 text-sm">
                 <span :class="componentTone(review.actionScoreDelta)">
                   {{ review.actionScoreDelta >= 0 ? '+' : ''
                   }}{{ review.actionScoreDelta }} action
                 </span>
                 <span class="text-mist/50"> / </span>
-                <span :class="componentTone(review.ownerScoreDelta)">
-                  {{ review.ownerScoreDelta >= 0 ? '+' : ''
-                  }}{{ review.ownerScoreDelta }} {{ secondaryLabel(review) }}
+                <span :class="componentTone(review.secondaryScoreDelta)">
+                  {{ review.secondaryScoreDelta >= 0 ? '+' : ''
+                  }}{{ review.secondaryScoreDelta }}
+                  {{ secondaryLabel(review) }}
                 </span>
                 <span class="text-mist/50"> / </span>
                 <span :class="componentTone(review.streakBonusDelta)">
